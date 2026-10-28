@@ -1,0 +1,2610 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sơ đồ tổ chức</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#f3f5f9; --panel:#ffffff; --text:#1f2329; --muted:#646a73; --faint:#8f959e;
+    --line:#c3c8d0; --border:#e3e6eb; --brand:#3370ff; --brand-soft:#e8efff;
+    --warn:#a65400; --warn-soft:#fff5e6;
+    --shadow:0 1px 2px rgba(31,35,41,.05), 0 2px 8px rgba(31,35,41,.06);
+    --cw:200px; --card:#ffffff; --card2:#fbfcfd; --dot:#d9dde5;
+  }
+  :root[data-theme="dark"] {
+    --bg:#17181a; --panel:#1f2023; --card:#26282c; --card2:#222428; --dot:#33363b;
+    --text:#ebedf0; --muted:#a6abb3; --faint:#7f848c; --line:#4a4f57; --border:#363940;
+    --brand-soft:#1e2d52; --warn:#f0b061; --warn-soft:#33281a;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.25);
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text);
+    font-family:"Be Vietnam Pro", -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size:13px; }
+  body { display:flex; flex-direction:column; overflow:hidden; }
+  button { font:inherit; }
+  svg { display:block; }
+
+  /* ---------- Thanh trên ---------- */
+  .top { display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--panel); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:9px; margin-right:auto; min-width:0; }
+  .logo { width:30px; height:30px; border-radius:8px; background:var(--brand); color:#fff; display:grid; place-items:center; flex:none; }
+  .logo svg { width:17px; height:17px; }
+  .brand h1 { font-size:14px; margin:0; font-weight:700; white-space:nowrap; }
+  .brand .stats { font-size:11px; color:var(--muted); white-space:nowrap; }
+  .btn { display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 10px; border:1px solid var(--border);
+    border-radius:7px; background:var(--card); color:var(--text); cursor:pointer; font-size:12px; font-weight:500; white-space:nowrap; text-decoration:none; }
+  .btn:hover { border-color:var(--brand); color:var(--brand); }
+  .btn.primary { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .btn.primary:hover { color:#fff; filter:brightness(1.06); }
+  .btn.icon { width:30px; padding:0; justify-content:center; }
+  .btn svg { width:15px; height:15px; }
+  .btn:disabled { opacity:.7; cursor:default; }
+  .seg { display:inline-flex; align-items:center; }
+  .seg .btn { border-radius:0; margin-left:-1px; }
+  .seg .btn:first-child { border-radius:7px 0 0 7px; margin-left:0; }
+  .seg .btn:last-child { border-radius:0 7px 7px 0; }
+  .seg .pct { min-width:48px; justify-content:center; font-variant-numeric:tabular-nums; }
+
+  .sub { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--panel); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .search { position:relative; flex:1; min-width:170px; max-width:340px; }
+  .search input { width:100%; height:30px; border:1px solid var(--border); border-radius:7px; padding:0 10px 0 30px; font:inherit; font-size:12px; outline:none; background:var(--card); }
+  .search input:focus { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-soft); }
+  .search > svg { position:absolute; left:9px; top:8px; width:14px; height:14px; color:var(--faint); }
+  .sugg { position:absolute; left:0; right:0; top:34px; background:var(--card); border:1px solid var(--border); border-radius:8px; box-shadow:0 6px 24px rgba(31,35,41,.14); padding:4px; z-index:30; display:none; max-height:300px; overflow:auto; }
+  .sugg.show { display:block; }
+  .sugg button { display:flex; flex-direction:column; align-items:flex-start; width:100%; border:0; background:none; padding:6px 8px; border-radius:6px; cursor:pointer; text-align:left; }
+  .sugg button:hover, .sugg button.act { background:var(--brand-soft); }
+  .sugg b { font-size:12px; font-weight:600; }
+  .sugg small { font-size:11px; color:var(--muted); }
+  .spacer { flex:1; }
+  .deptf { position:relative; display:inline-flex; align-items:center; }
+  .deptf svg { position:absolute; left:9px; width:14px; height:14px; color:var(--faint); pointer-events:none; }
+  .deptf select { height:30px; padding-left:28px; min-width:170px; max-width:260px; font-weight:500; }
+  .deptf select.on { border-color:var(--brand); color:var(--brand); background:var(--brand-soft); }
+
+  .menu { position:relative; }
+  .menu .list { position:absolute; right:0; top:34px; background:var(--card); border:1px solid var(--border); border-radius:9px; box-shadow:0 6px 24px rgba(31,35,41,.14); padding:5px; min-width:220px; z-index:30; display:none; }
+  .menu.open .list { display:block; }
+  .menu .list button { display:flex; gap:9px; align-items:flex-start; width:100%; text-align:left; border:0; background:none; padding:8px 9px; border-radius:6px; cursor:pointer; font-size:12px; color:var(--text); }
+  .menu .list button:hover { background:var(--brand-soft); }
+  .menu .list button svg { width:16px; height:16px; color:var(--brand); margin-top:1px; flex:none; }
+  .menu .list small { display:block; color:var(--faint); font-size:11px; margin-top:1px; }
+
+  /* ---------- Cấu hình ---------- */
+  #config { background:var(--panel); border-bottom:1px solid var(--border); padding:12px; display:none; max-height:60vh; overflow:auto; }
+  #config.open { display:block; }
+  .cfg-title { font-size:12px; font-weight:600; margin:0 0 10px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:10px; }
+  .field { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--muted); font-weight:500; }
+  .field.full { grid-column:1 / -1; }
+  .field input[type=text] { height:30px; border:1px solid var(--border); border-radius:7px; padding:0 9px; background:var(--card); font:inherit; font-size:12px; color:var(--text); width:100%; outline:none; }
+  .field input[type=text]:focus { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-soft); }
+  .btitle { font-size:14px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40%; margin-right:4px; }
+  .btitle:empty { display:none; }
+  select { height:30px; border:1px solid var(--border); border-radius:7px; padding:0 8px; background:var(--card); font:inherit; font-size:12px; color:var(--text); width:100%; }
+  .checks { display:flex; flex-wrap:wrap; gap:6px 18px; margin-top:12px; }
+  .check { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text); cursor:pointer; }
+  .cfg-actions { display:flex; gap:8px; margin-top:12px; }
+  .inactive-box { margin-top:10px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--card2); }
+  .inactive-box .ib-title { font-size:11.5px; color:var(--muted); margin-bottom:6px; line-height:1.45; }
+  .inactive-box .ib-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .inactive-box label { display:inline-flex; align-items:center; gap:5px; font-size:12px; padding:3px 9px; border:1px solid var(--border); border-radius:999px; background:var(--card); cursor:pointer; }
+  .inactive-box label.on { border-color:#e5484d; background:#fdeaea; color:#b42318; }
+  .inactive-box small { color:var(--faint); }
+  .hide { display:none !important; }
+
+  #notice { display:none; padding:8px 12px; background:var(--warn-soft); color:var(--warn); font-size:12px; border-bottom:1px solid #ffe2bd; line-height:1.55; max-height:120px; overflow:auto; }
+  #notice.show { display:block; }
+  #notice { position:relative; padding-right:34px; }
+  #notice .nclose { position:absolute; top:6px; right:8px; border:0; background:none; color:var(--warn); cursor:pointer; font-size:16px; line-height:1; padding:2px 6px; border-radius:5px; }
+  #notice .nclose:hover { background:#ffe6c4; }
+  .top { flex-wrap:nowrap; }
+  @media (max-width: 560px) {
+    .top .lbl, .brand .stats { display:none; }
+    .top .btn { width:30px; padding:0; justify-content:center; }
+    .sub { gap:6px; }
+    .search { min-width:0; flex-basis:100%; max-width:none; }
+    .sub .spacer { display:none; }
+    #notice { max-height:64px; }
+  }
+
+  /* ---------- Vùng sơ đồ ---------- */
+  .main { flex:1; position:relative; min-height:0; }
+  #viewport { position:absolute; inset:0; overflow:hidden; cursor:grab; touch-action:none;
+    background-color:var(--bg); background-image:radial-gradient(var(--dot) 1px, transparent 1px); background-size:20px 20px; }
+  #viewport.dragging { cursor:grabbing; }
+  /* Nền tùy chỉnh */
+  body.bg-custom, html.bg-custom { background:transparent !important; }
+  body.bg-custom #viewport { background-color:var(--canvas); }
+  body.bg-custom .sub { background:var(--canvas); border-bottom-color:transparent; }
+  body.bg-nogrid #viewport { background-image:none; }
+  body.bg-dark { --line:rgba(255,255,255,.55); --dot:rgba(255,255,255,.14); }
+  body.bg-dark .btitle, body.bg-dark #empty, body.bg-dark #empty b, body.bg-dark #snapNote { color:#fff !important; }
+  body.bg-dark .tg { box-shadow:none; }
+  #exportArea.on-dark .ex-head h2 { color:#fff; } #exportArea.on-dark .ex-head p, #exportArea.on-dark .legend span { color:rgba(255,255,255,.8); }
+  #exportArea.on-dark .ex-head { border-bottom-color:rgba(255,255,255,.2); }
+  .bg-row { display:flex; gap:8px; align-items:center; }
+  .bg-row input[type=color] { width:34px; height:30px; padding:2px; border:1px solid var(--border); border-radius:7px; background:var(--card); cursor:pointer; flex:none; }
+  .bg-row input[type=range] { flex:1; accent-color:var(--brand); }
+  .bg-row output { font-size:12px; color:var(--text); min-width:38px; text-align:right; font-variant-numeric:tabular-nums; }
+  .swatches { display:flex; gap:6px; flex-wrap:wrap; margin-top:2px; }
+  .swatches button { width:24px; height:24px; border-radius:6px; border:1px solid var(--border); cursor:pointer; padding:0; }
+  .swatches button.on { outline:2px solid var(--brand); outline-offset:1px; }
+  .swatches .tp { background-image:linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%),linear-gradient(45deg,#ccc 25%,#fff 25%,#fff 75%,#ccc 75%); background-size:8px 8px; background-position:0 0,4px 4px; }
+  #stage { position:absolute; left:0; top:0; transform-origin:0 0; }
+  #exportArea { padding:24px 32px 36px; display:inline-block; }
+  #exportArea.exporting { background:var(--card); }
+  .ex-head { display:none; margin-bottom:22px; border-bottom:1px solid var(--border); padding-bottom:14px; }
+  #exportArea.exporting .ex-head { display:block; }
+  .ex-head h2 { margin:0; font-size:22px; font-weight:700; }
+  .ex-head p { margin:4px 0 10px; color:var(--muted); font-size:12px; }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 14px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
+  .legend i { width:10px; height:10px; border-radius:3px; display:inline-block; }
+  #exportArea.exporting .tg:not(.closed) { display:none; }
+  #exportArea.exporting .card.sel { border-color:var(--border); box-shadow:var(--shadow); }
+
+  #empty { position:absolute; inset:0; display:grid; place-items:center; color:var(--muted); text-align:center; padding:24px; pointer-events:none; line-height:1.5; }
+  #empty b { display:block; color:var(--text); font-size:14px; margin-bottom:4px; }
+
+  /* ---------- Cây: đường nối ---------- */
+  .tree ul { position:relative; display:flex; justify-content:center; margin:0; padding:22px 0 0; }
+  .tree li.n { list-style:none; position:relative; display:flex; flex-direction:column; align-items:center; padding:22px 8px 0; }
+  .tree li.n::before, .tree li.n::after { content:''; position:absolute; top:0; right:50%; width:50%; height:22px; border-top:1.5px solid var(--line); }
+  .tree li.n::after { right:auto; left:50%; border-left:1.5px solid var(--line); }
+  .tree li.n:only-child::before, .tree li.n:only-child::after { display:none; }
+  .tree li.n:only-child { padding-top:0; }
+  .tree li.n:first-child::before, .tree li.n:last-child::after { border:0 none; }
+  .tree li.n:last-child::before { border-right:1.5px solid var(--line); border-radius:0 9px 0 0; }
+  .tree li.n:first-child::after { border-radius:9px 0 0 0; }
+  .tree ul ul::before { content:''; position:absolute; top:0; left:50%; height:22px; border-left:1.5px solid var(--line); }
+  .tree > ul { padding-top:0; }
+  .tree > ul > li.n { padding-top:0; }
+  .tree > ul > li.n::before, .tree > ul > li.n::after { display:none; }
+
+  /* Cột dọc cho nhân viên cấp cuối */
+  .tree ul.stack { flex-direction:column; justify-content:flex-start; align-items:stretch; gap:8px; padding:16px 0 0 20px; width:var(--cw); }
+  .tree ul.stack::before { display:none; }
+  /* Cột nhân viên cuối đứng cạnh các nhánh quản lý (luôn là phần tử cuối hàng) */
+  .tree li.n.bundle { align-items:flex-start; }
+  .tree li.n.bundle::before { right:auto; left:0; width:17px; border-top:1.5px solid var(--line); border-right:1.5px solid var(--line); border-radius:0 9px 0 0; }
+  .tree li.n.bundle::after { display:none; }
+  .tree li.n.bundle > ul.stack { padding-top:0; }
+  .tree li.n.bundle > ul.stack > li.s:first-child::before { top:-2px; height:calc(50% + 2px); }
+  .tree li.s { list-style:none; position:relative; }
+  .tree li.s::before { content:''; position:absolute; left:-11px; top:-8px; width:11px; height:calc(50% + 8px);
+    border-left:1.5px solid var(--line); border-bottom:1.5px solid var(--line); border-radius:0 0 0 8px; }
+  .tree li.s:first-child::before { top:-16px; height:calc(50% + 16px); }
+  .tree li.s:not(:last-child)::after { content:''; position:absolute; left:-11px; top:50%; bottom:-8px; border-left:1.5px solid var(--line); }
+
+  /* ---------- Thẻ ---------- */
+  .card { position:relative; width:var(--cw); background:var(--card); border:1px solid var(--border); border-radius:11px; box-shadow:var(--shadow);
+    padding:10px 10px 10px 13px; display:flex; gap:10px; align-items:center; cursor:pointer; transition:box-shadow .15s, border-color .15s; text-align:left; }
+  .card::before { content:''; position:absolute; left:0; top:9px; bottom:9px; width:3px; border-radius:0 3px 3px 0; background:var(--c); }
+  .card:hover { border-color:var(--c); box-shadow:0 4px 16px rgba(31,35,41,.12); }
+  .card.sel { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-soft), var(--shadow); }
+  .card.hit { animation:hit 1s ease 2; }
+  @keyframes hit { 50% { box-shadow:0 0 0 7px rgba(51,112,255,.28); } }
+  .card.has-kids { margin-bottom:10px; }
+  .av { flex:none; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:12px; color:var(--c); background:var(--cs); letter-spacing:.3px; }
+  .av svg { width:17px; height:17px; }
+  .info { min-width:0; flex:1; }
+  .nm { font-weight:600; font-size:13px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
+  .tt { font-size:11.5px; color:var(--muted); line-height:1.35; margin-top:1px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .dp { display:inline-block; margin-top:5px; font-size:10.5px; line-height:1.6; padding:0 7px; border-radius:999px; background:var(--cs); color:var(--c);
+    max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; vertical-align:top; }
+  .tg { position:absolute; left:50%; bottom:-11px; transform:translateX(-50%); min-width:24px; height:21px; padding:0 7px; border-radius:999px;
+    border:1px solid var(--border); background:var(--card); font-size:10.5px; font-weight:700; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; box-shadow:var(--shadow); }
+  .tg:hover { border-color:var(--brand); color:var(--brand); }
+  .tg.closed { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .card.compact { width:100%; padding:7px 9px 7px 12px; gap:8px; border-radius:9px; }
+  .card.compact .av { width:28px; height:28px; font-size:10.5px; }
+  .card.compact .nm { font-size:12.5px; }
+  .card.compact .tt { font-size:11px; }
+  .card.compact .dp { margin-top:3px; }
+  .card.root { width:240px; background:linear-gradient(135deg, #3370ff, #1f4fd1); border:0; color:#fff; }
+  .card.root::before { display:none; }
+  .card.root .tt { color:#dbe6ff; }
+  .card.root .av { background:rgba(255,255,255,.18); color:#fff; }
+  .card.root .dp { background:rgba(255,255,255,.18); color:#fff; }
+  .card.dept .nm { font-size:13.5px; }
+  .card.group { border-style:dashed; background:var(--card2); box-shadow:none; }
+  /* Ảnh nhân viên */
+  .av.has-img { background:#eef0f3; overflow:hidden; padding:0; }
+  .av img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; border-radius:inherit; }
+  .rect .av { border-radius:7px; width:38px; height:50px; }
+  .rect .card.compact .av { width:30px; height:40px; border-radius:6px; }
+  .rect .card.head .av { width:46px; height:60px; }
+  .rect .d-head .av { width:52px; height:68px; border-radius:8px; }
+  .card.root .av, .card.group .av, .card.orphan .av { border-radius:50% !important; width:36px !important; height:36px !important; }
+
+  /* Trưởng bộ phận: dải tên phòng ban */
+  .card.head { width:224px; flex-wrap:wrap; padding-top:0; border:1.5px solid var(--c); box-shadow:0 3px 14px rgba(31,35,41,.10); }
+  .card.head::before { display:none; }
+  .card.head:hover { box-shadow:0 6px 20px rgba(31,35,41,.16); }
+  .card.head .av { width:42px; height:42px; font-size:13px; }
+  .card.head .nm { font-size:13.5px; }
+  .band { flex:0 0 calc(100% + 23px); margin:0 -10px 9px -13px; padding:5px 12px; background:var(--c); color:#fff;
+    font-size:10.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; border-radius:9px 9px 0 0;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card.ghost { border-style:dashed; background:var(--card); }
+  .card.compact.head { width:100%; }
+  .card.vacant { border:1.5px dashed var(--line); background:var(--card2); box-shadow:none; }
+  .card.vacant.head { border:1.5px dashed var(--c); }
+  .card.vacant .nm { color:var(--muted); font-weight:500; font-style:italic; }
+  .card.vacant .tt { color:var(--text); font-weight:600; }
+  .card.vacant .av { background:transparent; border:1.5px dashed var(--line); color:var(--faint); }
+  .card.vacant.compact { opacity:.85; }
+  .card.dept.vh .nm { color:var(--muted); font-style:italic; font-weight:500; }
+  .pack-box { padding:10px; border:1px solid var(--brand); border-radius:8px; background:var(--brand-soft); color:var(--text); }
+  .pack-info { font-size:11.5px; line-height:1.5; color:var(--muted); margin-top:6px; font-weight:400; }
+  .pack-info code { display:block; margin:4px 0 6px; padding:6px 8px; background:var(--card); border:1px solid var(--border); border-radius:6px; font-size:11px; color:var(--text); word-break:break-all; user-select:text; }
+  .pack-info .ok { color:#00875a; font-weight:600; } .pack-info .bad { color:#b42318; font-weight:600; }
+  .slot-list { display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:4px; }
+  .slot-list .check { font-size:12px; }
+  .seg .btn.on { background:var(--brand-soft); color:var(--brand); border-color:var(--brand); z-index:1; }
+  #layoutSeg { background:var(--card2, #f2f3f5); border:1px solid var(--border); border-radius:10px; padding:3px; gap:3px; }
+  #layoutSeg .btn { font-weight:600; border:0; border-radius:7px !important; margin:0; background:transparent; color:var(--muted); padding:5px 12px; gap:6px; }
+  #layoutSeg .btn svg { width:15px; height:15px; flex:none; }
+  #layoutSeg .btn:hover { color:var(--text); background:var(--card); }
+  #layoutSeg .btn.on { background:var(--brand); color:#fff; box-shadow:0 2px 8px rgba(51,112,255,.35); }
+  #layoutSeg .btn.on:hover { background:var(--brand); color:#fff; }
+  .card.lead { flex-wrap:wrap; padding-top:0; border-color:color-mix(in srgb, var(--c) 45%, var(--border)); }
+  .card.lead::before { display:none; }
+  .band.team { background:var(--cs); color:var(--c); font-size:10px; padding:4px 12px; }
+  .card.compact.lead .band.team { margin-bottom:6px; }
+  .tag.ops { background:#eef3ff; color:#3370ff; }
+  .tag.emp { margin-left:0; margin-right:3px; border:1px solid transparent; }
+  .tag.emp.try { background:#fff4e5; color:#b54708; border-color:#f9c784; }
+  .tag.emp.int { background:#f4ebff; color:#6941c6; border-color:#d6bbfb; }
+  .tag.emp.off { background:#e7f8f0; color:#067647; border-color:#a6e3c4; }
+  .tag.emp.oth { background:#f2f4f7; color:#475467; border-color:#d0d5dd; }
+  .tt .code { font-variant-numeric:tabular-nums; font-weight:600; color:var(--c); letter-spacing:.2px; }
+  .card.root .tt .code { color:#fff; }
+  .card.compact.head .av { width:34px; height:34px; }
+  .rect .card.compact.head .av { width:34px; height:45px; }
+  .card.ghost .band { background:repeating-linear-gradient(135deg, var(--c), var(--c) 8px, color-mix(in srgb, var(--c) 82%, #fff) 8px, color-mix(in srgb, var(--c) 82%, #fff) 16px); }
+  .tag { display:inline-block; margin-top:5px; margin-left:3px; font-size:10px; line-height:1.6; padding:0 6px; border-radius:999px; background:#fff1e0; color:#a65400; font-weight:600; vertical-align:top; }
+
+  /* Thẳng hàng theo cấp chức danh (chế độ cơ cấu) */
+  .tree.aligned .card:not(.compact):not(.root) { min-height:var(--rowh, 0px); }
+  .tree .stem { width:0; flex:none; border-left:1.5px solid var(--line); height:calc(var(--k, 0) * (var(--rowh, 90px) + 54px)); }
+  .tree.aligned ul ul > li.n:only-child { padding-top:22px; }
+  .tree.aligned ul ul > li.n:only-child::after { display:block; border-top:0; border-radius:0; }
+  .tree.aligned ul.stack { padding-top:calc(44px + var(--ext, 0px)); }
+  .tree.aligned ul.stack > li.s:first-child::before { top:calc(-44px - var(--ext, 0px)); height:calc(50% + 44px + var(--ext, 0px)); }
+  .tree.aligned li.n.bundle > ul.stack { padding-top:calc(22px + var(--ext, 0px)); }
+  .tree.aligned li.n.bundle > ul.stack > li.s:first-child::before { top:calc(-24px - var(--ext, 0px)); height:calc(50% + 24px + var(--ext, 0px)); }
+  /* Sơ đồ cơ cấu tổ chức: ô chỉ ghi vị trí / phòng ban, không ghi tên người */
+  .card.pos { justify-content:center; text-align:center; padding:12px 14px; }
+  .card.pos .info { flex:none; max-width:100%; }
+  .card.pos .nm { font-weight:700; font-size:12.5px; letter-spacing:.4px; text-transform:uppercase; -webkit-line-clamp:3; }
+  .card.pos.lv { background:linear-gradient(135deg, #3370ff, #1f4fd1); border:0; color:#fff; }
+  .card.pos.lv::before { display:none; }
+  .card.pos.lv.vacant { background:var(--card2); color:var(--muted); border:1.5px dashed var(--line); }
+  .card.pos.dp-box { border:1.5px solid var(--c); }
+  .card.pos.dp-box .nm { color:var(--c); }
+  .adv-wrap .card.pos { width:180px; }
+
+  /* Cố vấn đứng cạnh ô Toàn công ty */
+  .rootbox { position:relative; }
+  .adv-wrap { position:absolute; left:100%; top:50%; transform:translateY(-50%); display:flex; gap:12px; padding-left:46px; }
+  .adv-wrap::before { content:''; position:absolute; left:0; top:50%; width:46px; border-top:1.5px dashed var(--line); }
+  .adv-wrap .card { width:210px; border-style:dashed; }
+  .adv-label { position:absolute; left:6px; top:calc(50% - 16px); font-size:10px; color:var(--faint); font-weight:600; }
+
+  .card.orphan { border:1.5px dashed #f0a14a; background:#fffaf2; box-shadow:none; }
+  .card.orphan .av { background:#ffe9cc; color:#a65400; }
+  .card.orphan::before { background:#f0a14a; }
+
+  /* ---------- Bảng chi tiết ---------- */
+  #detail { position:absolute; top:10px; right:10px; bottom:10px; width:290px; max-width:calc(100% - 20px); background:var(--card); border:1px solid var(--border);
+    border-radius:12px; box-shadow:0 10px 30px rgba(31,35,41,.16); display:none; flex-direction:column; z-index:15; overflow:hidden; }
+  #detail.show { display:flex; }
+  #viewport, #viewport * { -webkit-user-select:none; user-select:none; }
+  #detail, #detail * { -webkit-user-select:text; user-select:text; }
+  #detail button, #detail .d-x { -webkit-user-select:none; user-select:none; }
+  .d-head { padding:16px 40px 12px 16px; display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--border); position:relative; }
+  .d-head .av { width:46px; height:46px; font-size:15px; }
+  .d-head h3 { margin:0; font-size:15px; line-height:1.3; }
+  .d-head p { margin:2px 0 0; color:var(--muted); font-size:12px; }
+  .d-close { position:absolute; top:10px; right:10px; border:0; background:none; color:var(--faint); cursor:pointer; padding:4px; border-radius:6px; }
+  .d-close:hover { background:var(--bg); color:var(--text); }
+  .d-close svg { width:16px; height:16px; }
+  .d-kpis { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); }
+  .kpi { background:var(--bg); border-radius:8px; padding:8px 10px; }
+  .kpi b { display:block; font-size:16px; font-variant-numeric:tabular-nums; }
+  .kpi span { font-size:11px; color:var(--muted); }
+  .d-body { padding:6px 16px 16px; overflow:auto; flex:1; }
+  .d-row { padding:8px 0; border-bottom:1px dashed var(--border); }
+  .d-row:last-child { border-bottom:0; }
+  .d-row .k { font-size:11px; color:var(--faint); margin-bottom:2px; }
+  .d-row .v { font-size:12.5px; word-break:break-word; }
+  .link { color:var(--brand); cursor:pointer; font-weight:500; }
+  .link:hover { text-decoration:underline; }
+  .chips { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+  .chips .link { font-size:12px; background:var(--brand-soft); padding:2px 8px; border-radius:999px; }
+
+  /* ---------- Thông báo / hộp thoại ---------- */
+  #toast { position:absolute; left:12px; bottom:12px; background:rgba(31,35,41,.88); color:#fff; font-size:12px; padding:7px 12px; border-radius:8px; z-index:20; max-width:70%; opacity:0; transition:opacity .2s; pointer-events:none; }
+  #toast.show { opacity:1; }
+  .modal { position:fixed; inset:0; background:rgba(31,35,41,.45); display:none; place-items:center; z-index:50; padding:16px; }
+  .modal.show { display:grid; }
+  .modal .box { background:var(--card); border-radius:12px; padding:18px; width:min(520px, 100%); max-height:90vh; display:flex; flex-direction:column; gap:12px; }
+  .modal h3 { margin:0; font-size:15px; }
+  .modal p { margin:0; color:var(--muted); font-size:12px; line-height:1.5; }
+  .modal .pv { border:1px solid var(--border); border-radius:8px; overflow:auto; max-height:46vh; background:var(--bg); }
+  .modal .pv img { display:block; max-width:100%; }
+  .modal .acts { display:flex; justify-content:flex-end; gap:8px; }
+  .spin { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:sp .8s linear infinite; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+
+  /* ---------- Chạy trong khối dashboard (Base / Base App) ---------- */
+  .m-dash, .m-base { }
+  #btnSave { display:none; }
+  body.dash .top { display:none; }
+  body.dash:not(.dash-config) #notice { display:none !important; }   /* người xem dashboard không cần thấy cảnh báo dữ liệu */
+  body.dash-config #config { display:block; position:fixed; right:0; top:0; bottom:0; width:320px; max-height:none;
+    border-left:1px solid var(--border); border-bottom:0; z-index:40; padding:14px; }
+  body.dash-config .sub, body.dash-config #notice, body.dash-config .main { margin-right:320px; }
+  body.dash-config #btnCloseCfg { display:none; }
+  body.dash-config #btnSave { display:inline-flex; }
+  body.dash-config .grid { grid-template-columns:1fr; }
+  .dash-hint { display:none; font-size:11.5px; color:var(--muted); line-height:1.5; margin:10px 0 0; }
+  body.dash-config .dash-hint { display:block; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-3h14v3"/></svg></div>
+      <div><h1>Sơ đồ tổ chức</h1><div class="stats" id="stats">Đang kết nối…</div></div>
+    </div>
+    <button class="btn" id="btnConfig" title="Cấu hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span class="lbl">Cấu hình</span></button>
+    <button class="btn icon" id="btnRefresh" title="Cập nhật dữ liệu mới nhất"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+    <div class="menu" id="exportMenu">
+      <button class="btn primary" id="btnExport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl">Xuất file</span></button>
+      <div class="list">
+        <button data-ex="png"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg><span>Ảnh PNG<small>Nét cao, đúng như đang hiển thị</small></span></button>
+        <button data-ex="copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg><span>Sao chép ảnh<small>Dán thẳng vào Docs, tin nhắn, email</small></span></button>
+        <button data-ex="a4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span>PDF khổ A4<small>Thu vừa 1 trang, tự xoay ngang/dọc</small></span></button>
+        <button data-ex="a3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span>PDF khổ A3<small>Phù hợp sơ đồ lớn để in</small></span></button>
+        <button data-ex="html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg><span>Trang web (HTML)<small>Xem, phóng to ngoài Lark; tải lên web/Drive để chia sẻ</small></span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <div class="btitle" id="blockTitle"></div>
+    <div class="seg hide" id="layoutSeg" title="Chọn kiểu sơ đồ">
+      <button class="btn" data-layout="org" title="Sơ đồ cơ cấu tổ chức: chỉ lãnh đạo và phòng ban"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-3h14v3"/></svg>Cơ cấu tổ chức</button>
+      <button class="btn" data-layout="staff" title="Sơ đồ cơ cấu nhân sự: chi tiết từng người"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>Cơ cấu nhân sự</button>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" placeholder="Tìm nhân viên theo tên, mã, chức danh…" autocomplete="off">
+      <div class="sugg" id="sugg"></div>
+    </div>
+    <label class="deptf hide" title="Lọc sơ đồ theo phòng ban (chỉ thay đổi phần bạn đang xem)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>
+      <select id="selDeptFilter"><option value="">Tất cả phòng ban</option></select>
+    </label>
+    <div class="spacer"></div>
+    <div class="seg">
+      <button class="btn" id="btnExpand" title="Mở rộng tất cả">Mở hết</button>
+      <button class="btn" id="btnCollapse" title="Chỉ hiện cấp cao nhất">Thu gọn</button>
+    </div>
+    <div class="seg">
+      <button class="btn icon" id="zOut" title="Thu nhỏ">−</button>
+      <button class="btn pct" id="zPct" title="Vừa màn hình">100%</button>
+      <button class="btn icon" id="zIn" title="Phóng to">+</button>
+    </div>
+  </div>
+
+  <div id="config">
+    <p class="cfg-title">Chọn bảng và các cột dữ liệu (đã tự chọn sẵn theo tên cột)</p>
+    <div class="grid">
+      <label class="field full">Cách dựng sơ đồ
+        <select id="selMode">
+          <option value="structure">Theo cơ cấu: Lãnh đạo → Phòng ban → Nhóm (khuyến nghị)</option>
+          <option value="parent">Theo đúng cột "Quản lý trực tiếp"</option>
+          <option value="group">Theo Phòng ban và Chức danh (khi chưa có cột quản lý)</option>
+        </select>
+      </label>
+      <label class="field full">Tiêu đề khối / sơ đồ<input id="inpTitle" type="text" maxlength="80" placeholder="VD: Sơ đồ tổ chức Tiến Lợi Group"></label>
+      <label class="field full hide" id="fieldBase">Nguồn dữ liệu (Base)<select id="selBase"></select></label>
+      <div class="field full m-dash hide pack-box">Tự động cập nhật trên dashboard (khuyến nghị)
+        <div class="bg-row">
+          <select id="selPack" style="flex:1"><option value="">— Chưa dùng (khối lưu bản chụp dữ liệu) —</option></select>
+          <button class="btn" id="btnMakePack" type="button">Tạo / cập nhật cột tự động</button>
+        </div>
+        <div class="pack-info" id="packInfo"></div>
+      </div>
+      <label class="field">Bảng dữ liệu<select id="selTable"></select></label>
+      <label class="field">Họ và tên<select id="selName"></select></label>
+      <label class="field m-parent">Quản lý trực tiếp<select id="selParent"></select></label>
+      <label class="field m-struct">Lãnh đạo phụ trách phòng (Quản lý bộ phận)<select id="selDeptMgr"></select></label>
+      <label class="field m-struct">Chế độ xem mặc định<select id="selLayout">
+        <option value="staff">Sơ đồ cơ cấu nhân sự (chi tiết)</option>
+        <option value="org">Sơ đồ cơ cấu tổ chức (phòng ban)</option>
+      </select></label>
+      <label class="field m-struct">Các phòng ban đặt dưới<select id="selDeptUnder">
+        <option value="lowest">Lãnh đạo cấp thấp nhất (vd Phó GĐ)</option>
+        <option value="manager">Lãnh đạo là quản lý trực tiếp của trưởng phòng</option>
+      </select></label>
+      <label class="field m-parent">Mã NV<select id="selCode"></select></label>
+      <label class="field m-parent">Tên khác để khớp quản lý<select id="selAlias"></select></label>
+      <label class="field">Chức danh<select id="selTitle"></select></label>
+      <label class="field">Phòng ban<select id="selDept"></select></label>
+      <label class="field">Nhóm / Tổ<select id="selTeam"></select></label>
+      <label class="field">Cấp bậc (số, để sắp xếp)<select id="selLevel"></select></label>
+      <label class="field">Ảnh nhân viên<select id="selPhoto"></select></label>
+      <label class="field">Trạng thái hợp đồng (Chính thức / Thử việc / Thực tập)<select id="selEmp"></select></label>
+      <div class="field full">Nền sơ đồ
+        <div class="bg-row">
+          <select id="selBg" style="flex:1">
+            <option value="auto">Theo giao diện Lark (mặc định)</option>
+            <option value="transparent">Trong suốt (nhìn thấy nền dashboard)</option>
+            <option value="#ffffff">Trắng</option>
+            <option value="#f3f5f9">Xám nhạt</option>
+            <option value="#e8efff">Xanh nhạt</option>
+            <option value="#1f4fd1">Xanh dương</option>
+            <option value="#0f2a4a">Xanh đậm</option>
+            <option value="#14532d">Xanh lá đậm</option>
+            <option value="#111315">Đen</option>
+            <option value="custom">Tự chọn màu…</option>
+          </select>
+          <input type="color" id="inpBgColor" value="#1f4fd1" title="Chọn màu nền" class="hide">
+        </div>
+        <div class="bg-row" id="bgAlphaRow">
+          <span style="font-size:11px;white-space:nowrap">Độ đậm nền</span>
+          <input type="range" id="rngBgAlpha" min="0" max="100" step="5" value="100">
+          <output id="outBgAlpha">100%</output>
+        </div>
+      </div>
+      <label class="field">Kiểu ảnh<select id="selShape">
+        <option value="circle">Ảnh tròn</option>
+        <option value="rect">Ảnh thẻ chữ nhật (3x4)</option>
+      </select></label>
+      <label class="field">Lấy dữ liệu theo view<select id="selView"><option value="">Tất cả dòng trong bảng</option></select></label>
+      <label class="field">Cột tình trạng làm việc<select id="selStatus"></select></label>
+      <label class="field">Lọc theo cột<select id="selFilterField"></select></label>
+      <label class="field">Giá trị lọc<select id="selFilterValue"><option value="">Tất cả</option></select></label>
+    </div>
+    <div class="checks">
+      <label class="check"><input type="checkbox" id="chkActive" checked> Ẩn người đã nghỉ việc</label>
+      <label class="check"><input type="checkbox" id="chkCode" checked> Hiện mã nhân viên trên thẻ</label>
+      <label class="check"><input type="checkbox" id="chkEmpAll"> Hiện cả nhãn "Chính thức" (mặc định chỉ hiện Thử việc / Thực tập…)</label>
+      <label class="check"><input type="checkbox" id="chkGrid" checked> Hiện lưới chấm trên nền</label>
+      <div class="field full m-struct slots">Luôn hiện ô vị trí (kể cả khi chưa có người)
+        <div class="slot-list">
+          <label class="check"><input type="checkbox" data-slot="lead" checked> Chủ tịch / Giám đốc / Phó GĐ</label>
+          <label class="check"><input type="checkbox" data-slot="tp" checked> Trưởng phòng</label>
+          <label class="check"><input type="checkbox" data-slot="pp" checked> Phó phòng</label>
+          <label class="check"><input type="checkbox" data-slot="team" checked> Tổ trưởng / Quản lý / Trưởng nhóm</label>
+          <label class="check"><input type="checkbox" data-slot="cv"> Chuyên viên</label>
+          <label class="check"><input type="checkbox" data-slot="nv"> Nhân viên</label>
+          <label class="check"><input type="checkbox" data-slot="tt"> Thực tập</label>
+        </div>
+      </div>
+      <label class="check m-struct"><input type="checkbox" id="chkOps" checked> Hiện nhãn "QL" khi người duyệt phép khác cấp trên trên sơ đồ</label>
+      <label class="check"><input type="checkbox" id="chkCompact" checked> Xếp nhân viên cấp cuối thành cột dọc</label>
+    </div>
+    <div id="inactiveBox" class="inactive-box hide"></div>
+    <div class="cfg-actions">
+      <button class="btn primary" id="btnSave">Lưu cấu hình</button>
+      <button class="btn" id="btnDraw">Xem trước</button>
+      <button class="btn" id="btnCloseCfg">Đóng</button>
+      <button class="btn" id="btnDiag" title="Thu thập thông tin để gửi người hỗ trợ">Chẩn đoán</button>
+    </div>
+    <p style="font-size:10.5px;color:var(--faint);margin:8px 0 0">Phiên bản <span id="appVer"></span></p>
+    <p class="dash-hint">Bấm <b>Xem trước</b> để thử, rồi bấm <b>Lưu cấu hình</b> để lưu sơ đồ vào khối này. Mọi người xem dashboard sẽ thấy sơ đồ theo cấu hình đã lưu.</p>
+  </div>
+  <div id="notice"></div>
+
+  <div class="main">
+    <div id="viewport">
+      <div id="stage">
+        <div id="exportArea">
+          <div class="ex-head">
+            <h2 id="exTitle">Sơ đồ tổ chức</h2>
+            <p id="exSub"></p>
+            <div class="legend" id="legend"></div>
+          </div>
+          <div class="tree" id="tree"></div>
+        </div>
+      </div>
+      <div id="empty"><div><b>Đang tải dữ liệu…</b>Mở trang này bên trong Lark Base để xem sơ đồ.</div></div>
+    </div>
+    <aside id="detail"></aside>
+    <div id="toast"></div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="box">
+      <h3 id="mTitle">File đã sẵn sàng</h3>
+      <p id="mText"></p>
+      <div class="pv" id="mPreview"></div>
+      <div class="acts">
+        <button class="btn" id="mClose">Đóng</button>
+        <a class="btn primary" id="mDownload" download>Tải xuống</a>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+import * as SDK from 'https://esm.sh/@lark-base-open/js-sdk@1.0.2';
+const { bitable, FieldType } = SDK;
+const dashboard = SDK.dashboard || null;     // khối dashboard
+const workspace = SDK.workspace || null;     // Base App: nhiều nguồn base
+const SourceType = SDK.SourceType || { ALL: 'ALL' };
+
+const $ = (id) => document.getElementById(id);
+const CONFIG_KEY = 'orgchart-config-v4';
+const APP_VERSION = '2026-10-28.1';
+const diagLog = [];   // nhật ký các bước làm việc với dashboard
+const dlog = (step, info) => { diagLog.push({ t: new Date().toISOString().slice(11, 19), step, info }); if (diagLog.length > 60) diagLog.shift(); };
+
+let currentTable = null;
+let fieldMetas = [];
+let records = [];
+let recordsById = new Map();
+let tree = null;
+let nodeByKey = new Map();
+let selectedKey = null;
+let diag = {};
+let deptColors = new Map();
+let unsubscribers = [];
+let firstRender = true;
+let photoUrls = new Map();   // recordId -> link ảnh
+let photoSeq = 0;
+let srcBase = bitable.base;   // base đang đọc dữ liệu
+let srcToken = '';            // '' = base hiện tại
+let dashMode = null;          // null = thanh bên; 'Create' | 'Config' | 'View' | 'FullScreen' = khối dashboard
+let renderedTimer = null;
+let snapMode = false;
+let packMode = false, packSaved = null, packDash = null;   // tự cập nhật qua 1 cột (dashboard getData)
+const PACK_KEYS = ['code', 'name', 'title', 'dept', 'team', 'parent', 'deptMgr', 'status', 'alias', 'filterField', 'emp'];
+let deptFilter = '';
+let layout = 'staff', layoutTouched = false;   // 'staff' = cơ cấu nhân sự, 'org' = cơ cấu tổ chức            // lọc phòng ban ngay trên khối (chỉ ảnh hưởng người đang xem)
+let liveConnect = null;        // hàm kết nối trực tiếp tới bảng nguồn (gán trong init)
+let dashSaved = null;          // cấu hình khối đọc từ Lark (để tự cập nhật bản chụp)
+let lastAutoSave = 0, lastRefreshAt = Date.now();          // đang hiển thị từ bản chụp dữ liệu lưu trong khối
+
+/* ============ Tiện ích ============ */
+function toText(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (Array.isArray(v)) return v.map(toText).filter(Boolean).join(v.every(x => x && x.type === 'text') ? '' : ', ');
+  if (typeof v === 'object') {
+    if (v.text !== undefined) return toText(v.text);
+    if (v.name) return v.name;
+    if (v.enName) return v.enName;
+  }
+  return '';
+}
+const FT = (k, d) => (FieldType && FieldType[k] !== undefined ? FieldType[k] : d);
+const T_DATE = [FT('DateTime', 5), FT('CreatedTime', 1001), FT('ModifiedTime', 1002)];
+function fmtDate(ms, withTime) {
+  const d = new Date(Number(ms));
+  if (isNaN(d)) return String(ms);
+  const p = (x) => String(x).padStart(2, '0');
+  const s = `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+  return withTime && (d.getHours() || d.getMinutes()) ? `${s} ${p(d.getHours())}:${p(d.getMinutes())}` : s;
+}
+/* Hiển thị giá trị một ô theo đúng kiểu cột (ngày, số, tiền, %, ô tích…) */
+function fmtCell(meta, v) {
+  if (v === null || v === undefined || v === '') return '';
+  const type = meta && meta.type;
+  const prop = (meta && meta.property) || {};
+  const fmt = String(prop.dateFormat || prop.formatter || '');
+  const looksDate = T_DATE.includes(type) || /yyyy|dd|MM\/|HH:mm/.test(fmt)
+    || (/ngày|date|sinh|thời\s*gian|hạn|time/i.test((meta && meta.name) || '') && typeof v === 'number' && v > 1e11 && v < 1e14);
+  const one = (x) => {
+    if (x === null || x === undefined) return '';
+    if (typeof x === 'number') {
+      if (looksDate && x > 1e11 && x < 1e14) return fmtDate(x, /HH/.test(fmt));
+      if (type === FT('Progress', 99002)) return Math.round(x * 100) + '%';
+      if (type === FT('Currency', 99003)) return x.toLocaleString('vi-VN') + (prop.currencyCode ? ' ' + prop.currencyCode : '');
+      if (type === FT('Rating', 99004)) return '★'.repeat(Math.round(x));
+      return x.toLocaleString('vi-VN', { maximumFractionDigits: 4 });
+    }
+    if (typeof x === 'boolean') return x ? 'Có' : 'Không';
+    if (Array.isArray(x)) return x.map(one).filter(Boolean).join(x.every(y => y && y.type === 'text') ? '' : ', ');
+    if (typeof x === 'object') {
+      if (x.full_address || x.fullAddress) return x.full_address || x.fullAddress;
+      if (x.value !== undefined && x.text === undefined && x.name === undefined) return one(x.value);
+      return toText(x);
+    }
+    return String(x);
+  };
+  return one(v);
+}
+function linkIds(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v.flatMap(linkIds);
+  if (v.recordIds) return v.recordIds;
+  if (v.record_ids) return v.record_ids;
+  return [];
+}
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const norm = (s) => String(s || '').normalize('NFC').trim().replace(/\s+/g, ' ');
+const vk = (s) => norm(s).toLowerCase();
+/* Bỏ dấu để so khớp "Thủy" với "Thuỷ", "Hòa" với "Hoà"… */
+const fold = (s) => norm(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
+function initials(name) {
+  const w = norm(name).split(' ').filter(Boolean);
+  if (!w.length) return '?';
+  if (w.length === 1) return w[0].slice(0, 2).toUpperCase();
+  return (w[0][0] + w[w.length - 1][0]).toUpperCase();
+}
+let toastTimer;
+function toast(t, ms = 3000) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), ms); }
+
+/* Thang chức danh: 0 Chủ tịch · 1 Giám đốc · 2 Phó GĐ · 3 Trưởng phòng · 4 Phó phòng ·
+   5 Tổ trưởng / Quản lý / Trưởng nhóm · 6 Chuyên viên · 7 Nhân viên / Hậu cần / Lái xe… · 8 Thực tập */
+const RANKS = [
+  [/phó\s*chủ\s*tịch/i, 0.5],
+  [/phó\s*(tổng\s*)?giám\s*đốc|phó\s*gđ|deputy\s*director/i, 2],
+  [/chủ\s*tịch|hội\s*đồng\s*quản\s*trị|chairman/i, 0],
+  [/tổng\s*giám\s*đốc|giám\s*đốc|\bgđ\b|\bceo\b|director/i, 1],
+  [/phó\s*(phòng|ban|bộ\s*phận|trưởng\s*phòng)|deputy/i, 4],
+  [/trưởng\s*(phòng|ban|bộ\s*phận)|kế\s*toán\s*trưởng|head\s*of/i, 3],
+  [/tổ\s*trưởng|trưởng\s*nhóm|trưởng\s*ca|quản\s*lý|leader|giám\s*sát|supervisor|manager/i, 5],
+  [/chuyên\s*viên|specialist|kỹ\s*sư|engineer/i, 6],
+  [/thực\s*tập|intern|học\s*việc|trainee/i, 8],
+];
+const LEVEL_LABEL = ['Chủ tịch', 'Giám đốc', 'Phó Giám đốc', 'Trưởng phòng', 'Phó phòng', 'Trưởng nhóm', 'Chuyên viên', 'Nhân viên', 'Thực tập'];
+const DEFAULT_SLOTS = { lead: true, tp: true, pp: true, team: true, cv: false, nv: false, tt: false };
+function rankOf(title) { for (const [re, r] of RANKS) if (re.test(title || '')) return r; return 7; }
+const isLeadershipDept = (name) => /ban\s*(lãnh\s*đạo|giám\s*đốc|điều\s*hành)|board/i.test(name || '');
+const ADVISOR_RE = /cố\s*vấn|nguyên\s*(tổng\s*)?giám\s*đốc|danh\s*dự|advisor/i;
+/* Giá trị mặc định được coi là "đã nghỉ việc" — KHÔNG gồm nghỉ phép, thai sản, ốm đau, nghỉ không lương… */
+function autoInactive(v) {
+  const f = fold(v);
+  if (!f) return false;
+  if (/phep|thai san|om dau|benh|tam nghi|tam hoan|khong luong|cho viec|nghi le|nua ngay/.test(f)) return false;
+  return /nghi viec|thoi viec|da nghi|cham dut|het hop dong|da roi|resign|terminat|inactive|^nghi$/.test(f);
+}
+let inactiveVals = null;   // null = tự nhận; Set các giá trị (đã chuẩn hóa) mà người dùng tích là "đã nghỉ"
+const isInactive = (v) => {
+  const n = norm(v);
+  if (!n) return false;
+  return inactiveVals ? inactiveVals.has(n.toLowerCase()) : autoInactive(n);
+};
+
+const PALETTE = [
+  ['#3370ff', '#e8efff'], ['#00a870', '#e2f6ee'], ['#e37318', '#fdefe3'], ['#7f56d9', '#f0ebfc'],
+  ['#d92d6b', '#fce8ef'], ['#0e9aa7', '#e0f4f5'], ['#b8860b', '#faf1dc'], ['#e5484d', '#fdeaea'],
+  ['#2f855a', '#e6f2ea'], ['#5b6b82', '#edf0f4'], ['#9c4dcc', '#f5ebfa'], ['#c05621', '#fbeee6'],
+];
+const NEUTRAL = ['#8f959e', '#f0f1f3'];
+const colorOf = (dept) => deptColors.get(dept) || NEUTRAL;
+
+const ICON = {
+  dept: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M15 9h.01M9 13h.01M15 13h.01M10 21v-4h4v4"/></svg>',
+  group: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>',
+  vacant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="4"/><path d="M2 21a8 8 0 0 1 13-6.2M19 15v6M16 18h6"/></svg>',
+  root: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-3h14v3"/></svg>',
+  orphan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+};
+
+/* ============ Cấu hình ============ */
+function fillSelect(sel, items, optional) {
+  sel.innerHTML = (optional ? '<option value="">— Không dùng —</option>' : '') +
+    items.map(i => `<option value="${esc(i.id)}">${esc(i.name)}</option>`).join('');
+}
+function guess(re, exclude = []) { const f = fieldMetas.find(f => re.test(f.name) && !exclude.includes(f.id)); return f ? f.id : ''; }
+function setIf(id, val) { if (val !== undefined && val !== null && [...$(id).options].some(o => o.value === val)) $(id).value = val; }
+/* ---------- Nền sơ đồ ---------- */
+function hexRgb(h) { const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) return [255, 255, 255]; const n = parseInt(m[1], 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function bgInfo(cfg) {
+  cfg = cfg || readConfig();
+  if (!cfg.bgMode || cfg.bgMode === 'auto') return null;
+  if (cfg.bgMode === 'transparent') return { rgba: 'rgba(0,0,0,0)', alpha: 0, dark: false, hex: null };
+  const hex = cfg.bgMode === 'custom' ? cfg.bgColor : cfg.bgMode;
+  const [r, g, b] = hexRgb(hex);
+  const a = Math.max(0, Math.min(100, cfg.bgAlpha ?? 100)) / 100;
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return { rgba: `rgba(${r},${g},${b},${a})`, alpha: a, dark: lum < 0.5 && a >= 0.45, hex };
+}
+function applyBg() {
+  const cfg = readConfig(), bi = bgInfo(cfg);
+  $('inpBgColor').classList.toggle('hide', cfg.bgMode !== 'custom');
+  $('bgAlphaRow').classList.toggle('hide', !bi || cfg.bgMode === 'transparent');
+  $('outBgAlpha').textContent = cfg.bgAlpha + '%';
+  const root = document.documentElement;
+  document.body.classList.toggle('bg-custom', !!bi); root.classList.toggle('bg-custom', !!bi);
+  document.body.classList.toggle('bg-dark', !!(bi && bi.dark));
+  document.body.classList.toggle('bg-nogrid', !cfg.showGrid);
+  if (bi) root.style.setProperty('--canvas', bi.rgba); else root.style.removeProperty('--canvas');
+}
+function restoreSlots(saved) {
+  const sl = { ...DEFAULT_SLOTS, ...((saved && saved.slots) || {}) };
+  document.querySelectorAll('[data-slot]').forEach(x => { x.checked = !!sl[x.dataset.slot]; });
+}
+function restoreBg(saved) {
+  if (!saved) return;
+  restoreSlots(saved);
+  if (saved.defaultLayout && !layoutTouched) layout = saved.defaultLayout;
+  if (saved.bgMode) setIf('selBg', saved.bgMode);
+  if (saved.bgColor) $('inpBgColor').value = saved.bgColor;
+  if (saved.bgAlpha !== undefined) $('rngBgAlpha').value = saved.bgAlpha;
+  if (saved.showGrid !== undefined) $('chkGrid').checked = saved.showGrid;
+  applyBg();
+}
+function applyTitle() {
+  const t = $('inpTitle').value.trim();
+  $('blockTitle').textContent = dashMode ? t : '';
+  document.querySelector('.brand h1').textContent = t || 'Sơ đồ tổ chức';
+  document.title = t || 'Sơ đồ tổ chức';
+}
+function showModeFields() {
+  const m = $('selMode').value;
+  document.querySelectorAll('.m-parent').forEach(el => el.classList.toggle('hide', m === 'group'));
+  document.querySelectorAll('.m-struct').forEach(el => el.classList.toggle('hide', m !== 'structure'));
+}
+function readConfig() {
+  return {
+    tableId: $('selTable').value, mode: $('selMode').value, name: $('selName').value,
+    parent: $('selParent').value, code: $('selCode').value, alias: $('selAlias').value,
+    title: $('selTitle').value, dept: $('selDept').value, team: $('selTeam').value, level: $('selLevel').value,
+    status: $('selStatus').value, activeOnly: $('chkActive').checked,
+    filterField: $('selFilterField').value, filterValue: $('selFilterValue').value,
+    compact: $('chkCompact').checked, viewId: $('selView').value, viewName: ($('selView').selectedOptions[0] || {}).text || '', baseToken: srcToken,
+    inactiveValues: inactiveVals ? [...inactiveVals] : null,
+    photo: $('selPhoto').value, shape: $('selShape').value, blockTitle: $('inpTitle').value.trim(),
+    bgMode: $('selBg').value, bgColor: $('inpBgColor').value, bgAlpha: +$('rngBgAlpha').value, showGrid: $('chkGrid').checked,
+    deptUnder: $('selDeptUnder').value, showOps: $('chkOps').checked, showCode: $('chkCode').checked,
+    deptMgr: $('selDeptMgr').value, emp: $('selEmp').value, showEmpAll: $('chkEmpAll').checked, defaultLayout: $('selLayout').value, packField: $('selPack').value,
+    slots: Object.fromEntries([...document.querySelectorAll('[data-slot]')].map(x => [x.dataset.slot, x.checked])),
+  };
+}
+
+async function loadTable(tableId, saved) {
+  currentTable = await srcBase.getTableById(tableId);
+  fieldMetas = await currentTable.getFieldMetaList();
+  for (const id of ['selName', 'selParent']) fillSelect($(id), fieldMetas, false);
+  for (const id of ['selCode', 'selAlias', 'selTitle', 'selDept', 'selTeam', 'selLevel', 'selStatus', 'selFilterField', 'selPhoto', 'selDeptMgr', 'selEmp']) fillSelect($(id), fieldMetas, true);
+
+  const name = guess(/^họ\s*(và)?\s*tên$/i) || guess(/họ\s*(và)?\s*tên|full\s*name|^tên$|name/i) || (fieldMetas[0] && fieldMetas[0].id);
+  setIf('selName', name);
+  setIf('selCode', guess(/^mã\s*(nv|nhân\s*viên)$|employee\s*(id|code)|^mã$/i) || guess(/mã\s*(nv|nhân\s*viên)/i));
+  setIf('selAlias', guess(/lark|tên\s*khác|tên\s*hiển\s*thị|biệt\s*danh|alias/i, [name]));
+  setIf('selTitle', guess(/chức\s*danh|chức\s*vụ|title|position/i));
+  setIf('selDept', guess(/phòng\s*ban|department|dept/i) || guess(/bộ\s*phận/i));
+  setIf('selTeam', guess(/^nhóm$|^tổ$|^team$|nhóm\s*làm\s*việc|tổ\s*nhóm/i));
+  setIf('selLevel', guess(/cấp\s*bậc|cấp\s*độ|level|thứ\s*tự/i));
+  setIf('selStatus', guess(/(tình|trạng)\s*(trạng|thái)\s*làm\s*việc|working\s*status|employment\s*status/i)
+    || guess(/tình\s*trạng\s*nhân\s*sự|trạng\s*thái\s*nhân\s*sự|nghỉ\s*việc/i) || guess(/tình\s*trạng|employment/i));
+  setIf('selFilterField', guess(/^\s*(công\s*ty|company|pháp\s*nhân|đơn\s*vị)\s*$/i) || guess(/^(tên\s*)?công\s*ty\b(?!.*ngày)/i));
+  setIf('selDeptMgr', guess(/quản\s*lý\s*bộ\s*phận|lãnh\s*đạo\s*phụ\s*trách|phụ\s*trách\s*(bộ\s*phận|phòng)/i));
+  const photoRe = /ảnh|hình|photo|avatar|chân\s*dung/i;
+  const att = fieldMetas.find(f => f.type === FieldType.Attachment && photoRe.test(f.name)) || fieldMetas.find(f => photoRe.test(f.name));
+  if (att) setIf('selPhoto', att.id);
+  { const em = guess(/^\s*trạng\s*thái\s*$/i) || guess(/loại\s*(hợp\s*đồng|nhân\s*sự|lao\s*động)|hình\s*thức\s*(làm\s*việc|lao\s*động)|trạng\s*thái\s*(hợp\s*đồng|nhân\s*sự)|contract\s*type|employment\s*type/i); if (em) setIf('selEmp', em); }
+  const mgr = guess(/quản\s*lý\s*trực\s*tiếp/i) || guess(/mã.*quản\s*lý|người\s*quản\s*lý|cấp\s*trên|báo\s*cáo\s*cho|manager|parent/i);
+  const link = fieldMetas.find(f => f.type === FieldType.SingleLink || f.type === FieldType.DuplexLink);
+  setIf('selParent', mgr || (link && link.id));
+  $('selMode').value = ($('selDept').value && $('selTitle').value) ? 'structure' : (mgr || link) ? 'parent' : 'group';
+
+  // Danh sách view của bảng (chạy được cả với base ngoài Base App)
+  let views = [];
+  try { views = (await withTimeout(currentTable.getViewMetaList(), 8000)) || []; } catch (e) { dlog('views.error', String(e && e.message || e)); }
+  $('selView').innerHTML = '<option value="">Tất cả dòng trong bảng</option>' + views.map(v => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');
+  inactiveVals = null;
+  const same = saved && saved.tableId === tableId;
+  if (same) {
+    const map = { mode:'selMode', name:'selName', parent:'selParent', code:'selCode', alias:'selAlias', title:'selTitle',
+      dept:'selDept', team:'selTeam', level:'selLevel', status:'selStatus', filterField:'selFilterField', photo:'selPhoto', shape:'selShape', deptUnder:'selDeptUnder',
+      deptMgr:'selDeptMgr', emp:'selEmp', defaultLayout:'selLayout' };
+    for (const [k, id] of Object.entries(map)) setIf(id, saved[k]);
+    for (const [k, id] of [['compact', 'chkCompact'], ['activeOnly', 'chkActive'], ['showOps', 'chkOps'], ['showCode', 'chkCode'], ['showEmpAll', 'chkEmpAll']]) if (saved[k] !== undefined) $(id).checked = saved[k];
+    if (Array.isArray(saved.inactiveValues)) inactiveVals = new Set(saved.inactiveValues);
+    if (saved.blockTitle !== undefined) { $('inpTitle').value = saved.blockTitle || ''; applyTitle(); }
+    restoreBg(saved);
+    if (saved.viewId) setIf('selView', saved.viewId);
+    else if (saved.useView && !srcToken) {   // cấu hình cũ: "chỉ lấy dòng trong view hiện tại"
+      try { const sel = await withTimeout(bitable.base.getSelection(), 3000); if (sel && sel.tableId === tableId) setIf('selView', sel.viewId); } catch (e) {}
+    }
+  }
+  fillPackSelect(same ? saved.packField : '');
+  showModeFields();
+  await reloadRecords();
+  renderInactiveBox();
+  renderPackInfo();
+  refreshFilterValues(saved && saved.tableId === tableId ? saved.filterValue : '');
+  subscribeChanges();
+}
+
+function renderInactiveBox() {
+  const box = $('inactiveBox');
+  const sid = $('selStatus').value;
+  if (!sid || !$('chkActive').checked || snapMode) { box.classList.add('hide'); return; }
+  const counts = new Map();
+  for (const r of records) {
+    if (!norm(toText(r.fields[$('selName').value]))) continue;
+    const v = norm(toText(r.fields[sid]));
+    if (v) counts.set(v, (counts.get(v) || 0) + 1);
+  }
+  if (!counts.size) { box.classList.add('hide'); return; }
+  const vals = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40);
+  if (!inactiveVals) inactiveVals = new Set(vals.filter(([v]) => autoInactive(v)).map(([v]) => v.toLowerCase()));
+  box.innerHTML = `<div class="ib-title" style="margin-bottom:4px">Đã đọc <b>${records.length}</b> dòng từ bảng.</div><div class="ib-title">Tích các giá trị của cột <b>${esc(($('selStatus').selectedOptions[0] || {}).text || '')}</b> nghĩa là <b>đã nghỉ việc</b> (sẽ bị ẩn). Nghỉ phép, thai sản… thì để trống.</div>
+    <div class="ib-list">${vals.map(([v, n]) => { const on = inactiveVals.has(v.toLowerCase());
+      return `<label class="${on ? 'on' : ''}"><input type="checkbox" data-v="${esc(v)}" ${on ? 'checked' : ''}>${esc(v)} <small>${n}</small></label>`; }).join('')}</div>`;
+  box.classList.remove('hide');
+  box.querySelectorAll('input[data-v]').forEach(cb => cb.onchange = () => {
+    const k = cb.dataset.v.toLowerCase();
+    if (cb.checked) inactiveVals.add(k); else inactiveVals.delete(k);
+    cb.parentElement.classList.toggle('on', cb.checked);
+    refreshFilterValues($('selFilterValue').value);
+    const cfg = readConfig();
+    $('stats').textContent = `${filteredRows(cfg).length} nhân sự sẽ hiển thị · bấm ${dashMode ? 'Xem trước' : 'Vẽ sơ đồ'} để cập nhật`;
+  });
+}
+
+function baseRows(cfg) {
+  return records.filter(r => norm(toText(r.fields[cfg.name]))
+    && !(cfg.activeOnly && cfg.status && isInactive(toText(r.fields[cfg.status]))));
+}
+function filteredRows(cfg) {
+  const rows = baseRows(cfg);
+  if (!(cfg.filterField && cfg.filterValue)) return rows;
+  return rows.filter(r => (norm(toText(r.fields[cfg.filterField])) || '(Trống)') === cfg.filterValue);
+}
+
+function refreshFilterValues(keep) {
+  const cfg = readConfig(), fid = cfg.filterField, sel = $('selFilterValue');
+  if (!fid) { sel.innerHTML = '<option value="">Tất cả</option>'; sel.disabled = true; return; }
+  sel.disabled = false;
+  const counts = new Map();
+  for (const r of baseRows(cfg)) { const v = norm(toText(r.fields[fid])) || '(Trống)'; counts.set(v, (counts.get(v) || 0) + 1); }
+  const vals = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  sel.innerHTML = '<option value="">Tất cả</option>' + vals.map(([v, n]) => `<option value="${esc(v)}">${esc(v)} (${n})</option>`).join('');
+  setIf('selFilterValue', keep);
+}
+
+function subscribeChanges() {
+  unsubscribers.forEach(fn => { try { fn(); } catch (e) {} });
+  unsubscribers = [];
+  let timer;
+  const later = () => { clearTimeout(timer); timer = setTimeout(() => refresh(true).catch(() => {}), 1200); };
+  for (const ev of ['onRecordAdd', 'onRecordModify', 'onRecordDelete']) {
+    try { if (currentTable[ev]) unsubscribers.push(currentTable[ev](later)); } catch (e) {}
+  }
+}
+
+/* Đọc toàn bộ dòng của bảng. Base App chỉ trả tối đa 200 dòng/lần và phân trang không ổn định,
+   nên: (1) đọc theo trang; (2) đối chiếu với danh sách mã dòng; (3) đọc bổ sung các dòng còn thiếu. */
+async function fetchAllRecords(table) {
+  const all = new Map();
+  const getPage = table.getRecordsByPage ? (o) => table.getRecordsByPage(o) : (o) => table.getRecords(o);
+  let token, pages = 0;
+  try {
+    while (pages < 500) {
+      const res = await withTimeout(getPage({ pageSize: 200, pageToken: token }), 20000);
+      pages++;
+      for (const r of (res && res.records) || []) if (r && r.recordId) all.set(r.recordId, r);
+      const next = res && res.pageToken;
+      if (!res || !res.hasMore || next === undefined || next === null || next === '' || next === token) break;
+      token = next;
+    }
+  } catch (e) { dlog('records.page.error', String(e && e.message || e)); }
+
+  // Danh sách mã của tất cả dòng
+  let ids = [];
+  try {
+    if (table.getRecordIdListByPage) {
+      let t, n = 0;
+      while (n++ < 500) {
+        const res = await withTimeout(table.getRecordIdListByPage({ pageSize: 200, pageToken: t }), 20000);
+        ids.push(...((res && res.recordIds) || []));
+        if (!res || !res.hasMore || !res.pageToken || res.pageToken === t) break;
+        t = res.pageToken;
+      }
+    }
+    if (!ids.length && table.getRecordIdList) ids = (await withTimeout(table.getRecordIdList(), 20000)) || [];
+  } catch (e) { dlog('records.ids.error', String(e && e.message || e)); }
+  ids = [...new Set(ids.filter(Boolean))];
+
+  // Đọc bổ sung các dòng còn thiếu
+  const missing = ids.filter(id => !all.has(id));
+  let filled = 0;
+  for (let i = 0; i < missing.length; i += 20) {
+    const chunk = missing.slice(i, i + 20);
+    const got = await Promise.all(chunk.map(id => withTimeout(table.getRecordById(id), 15000).catch(() => null)));
+    chunk.forEach((id, j) => {
+      const v = got[j];
+      if (v) { all.set(id, { recordId: id, fields: v.fields || v }); filled++; }
+    });
+  }
+  dlog('records.fetch', { pages, paged: all.size - filled, idList: ids.length, filled, total: all.size });
+  // Giữ đúng thứ tự dòng của bảng nếu có danh sách mã
+  if (ids.length) return ids.map(id => all.get(id)).filter(Boolean).concat([...all.values()].filter(r => !ids.includes(r.recordId)));
+  return [...all.values()];
+}
+async function reloadRecords() {
+  let recs = await fetchAllRecords(currentTable);
+  const vid = $('selView').value;
+  if (vid) {
+    try {
+      const view = await currentTable.getViewById(vid);
+      const ids = new Set(((await withTimeout(view.getVisibleRecordIdList(), 15000)) || []).filter(Boolean));
+      recs = recs.filter(r => ids.has(r.recordId));
+      dlog('view.filter', { view: vid, rows: recs.length });
+    } catch (e) {
+      dlog('view.error', String(e && e.message || e));
+      toast('Không đọc được bộ lọc của view đã chọn, đang dùng toàn bộ bảng.', 5000);
+    }
+  }
+  records = recs;
+  recordsById = new Map(records.map(r => [r.recordId, r]));
+}
+
+/* ============ Dựng cây ============ */
+let keySeq = 0;
+const mk = (kind, p = {}) => ({ key: 'k' + (keySeq++), kind, name: '', title: '', dept: '', team: '', chip: '', extra: [], code: '',
+  recordId: null, level: null, children: [], collapsed: false, parent: null, ...p });
+
+function personFromRecord(r, cfg) {
+  const lv = cfg.level ? parseFloat(toText(r.fields[cfg.level])) : NaN;
+  return mk('person', {
+    recordId: r.recordId,
+    name: norm(toText(r.fields[cfg.name])),
+    title: cfg.title ? norm(toText(r.fields[cfg.title])) : '',
+    dept: cfg.dept ? norm(toText(r.fields[cfg.dept])) : '',
+    team: cfg.team ? norm(toText(r.fields[cfg.team])) : '',
+    code: cfg.code ? norm(toText(r.fields[cfg.code])) : '',
+    alias: cfg.alias ? norm(toText(r.fields[cfg.alias])) : '',
+    mgrRaw: cfg.deptMgr ? norm(toText(r.fields[cfg.deptMgr])) : '',
+    emp: cfg.emp ? norm(toText(r.fields[cfg.emp])) : '',
+    level: isNaN(lv) ? null : lv,
+  });
+}
+const sortKey = (n) => n.kind === 'orphan' ? 1e9 : (n.deptHead || n.kind === 'dept') ? 3 : (n.level !== null && n.level !== undefined ? n.level : rankOf(n.title)) + (n.kind === 'vacant' ? 0.01 : 0);
+function sortTree(n) {
+  n.children.sort((a, b) => sortKey(a) - sortKey(b) || (b.children.length > 0) - (a.children.length > 0)
+    || (a.dept || '').localeCompare(b.dept || '', 'vi') || (a.team || '').localeCompare(b.team || '', 'vi') || a.name.localeCompare(b.name, 'vi'));
+  // Lãnh đạo cấp dưới (vd Phó GĐ) đứng giữa, các phòng trực thuộc chia hai bên — như sơ đồ cơ cấu chuẩn
+  const L = n.children.filter(c => c.isLeader), O = n.children.filter(c => !c.isLeader);
+  if (n.isLeader && L.length && O.length) { const h = Math.ceil(O.length / 2); n.children = [...O.slice(0, h), ...L, ...O.slice(h)]; }
+  n.children.forEach(sortTree);
+}
+
+function buildByParent(cfg) {
+  const rows = filteredRows(cfg);
+  const parentMeta = fieldMetas.find(f => f.id === cfg.parent);
+  const isLink = parentMeta && (parentMeta.type === FieldType.SingleLink || parentMeta.type === FieldType.DuplexLink);
+  const nodes = new Map(), exact = new Map(), loose = new Map(), codeToId = new Map(), dupCodes = new Set();
+  const addKey = (map, k, id) => { if (!k) return; if (map.has(k) && map.get(k) !== id) map.set(k, null); else map.set(k, id); };
+  for (const r of rows) {
+    const n = personFromRecord(r, cfg);
+    nodes.set(r.recordId, n);
+    for (const nm of [n.name, n.alias]) { addKey(exact, vk(nm), r.recordId); addKey(loose, fold(nm), r.recordId); }
+    const c = n.code.toUpperCase();
+    if (c) { if (codeToId.has(c)) dupCodes.add(n.code); else codeToId.set(c, r.recordId); }
+  }
+  // Tên của những người không nằm trong sơ đồ (đã nghỉ, hoặc bị lọc) để giải thích khi không khớp
+  const outside = new Map();
+  for (const r of records) if (!nodes.has(r.recordId)) {
+    const nm = norm(toText(r.fields[cfg.name]));
+    const why = cfg.activeOnly && cfg.status && isInactive(toText(r.fields[cfg.status])) ? 'đã nghỉ việc' : 'không thuộc bộ lọc hiện tại';
+    if (nm) { outside.set(fold(nm), why); }
+    if (cfg.code) { const c = norm(toText(r.fields[cfg.code])).toUpperCase(); if (c) outside.set(c, why); }
+  }
+  const pick = (map, k) => (map.has(k) ? map.get(k) : undefined);
+  function resolve(v) {
+    if (isLink) { const id = linkIds(v)[0]; return id ? (nodes.has(id) ? id : undefined) : null; }
+    const t = norm(toText(v));
+    if (!t) return null;
+    const up = t.toUpperCase();
+    if (codeToId.has(up)) return codeToId.get(up);
+    for (const m of up.matchAll(/[A-Z]{1,6}[-_.]?\d{2,}/g)) if (codeToId.has(m[0])) return codeToId.get(m[0]);
+    const parts = [t, ...t.split(/\s*[-–,;|()]\s*/).filter(Boolean)];
+    for (const p of parts) { const id = pick(exact, vk(p)); if (id) return id; }
+    for (const p of parts) { const id = pick(loose, fold(p)); if (id) return id; }
+    return undefined;
+  }
+  const unmatched = new Map();   // tên quản lý ghi trong ô -> danh sách người
+  const selfRef = [], cycles = [];
+  const pid = new Map();
+  for (const r of rows) {
+    const me = nodes.get(r.recordId);
+    const raw = norm(toText(r.fields[cfg.parent]));
+    const p = resolve(r.fields[cfg.parent]);
+    if (p === undefined) {
+      const k = raw || '(liên kết)';
+      if (!unmatched.has(k)) unmatched.set(k, { people: [], why: outside.get(fold(raw)) || outside.get(raw.toUpperCase()) || 'không có trong bảng' });
+      unmatched.get(k).people.push(me);
+      me.orphanOf = raw;
+      continue;
+    }
+    if (p === r.recordId) { selfRef.push(me.name); continue; }
+    if (p) pid.set(r.recordId, p);
+  }
+  for (const [id] of [...pid]) {
+    const seen = new Set([id]);
+    let p = pid.get(id);
+    while (p) { if (seen.has(p)) { cycles.push(nodes.get(id).name); pid.delete(id); break; } seen.add(p); p = pid.get(p); }
+  }
+  const tops = [], loners = [], orphans = [], advisors = [];
+  for (const [id, n] of nodes) {
+    const p = pid.get(id);
+    if (p) { n.parent = nodes.get(p); n.parent.children.push(n); }
+    else if (n.orphanOf !== undefined) orphans.push(n);
+    else tops.push(n);
+  }
+  // Quản lý không có trong dữ liệu (cộng tác viên, người đã nghỉ…): tạo ô nét đứt, giữ nguyên nhóm nhân viên bên dưới
+  const ghosts = [], stray = [];
+  for (const [raw, info] of unmatched) {
+    const ppl = info.people;
+    if (!raw || raw === '(liên kết)') { stray.push(...ppl); continue; }
+    const cnt = new Map();
+    ppl.forEach(p => p.dept && cnt.set(p.dept, (cnt.get(p.dept) || 0) + 1));
+    const dept = ([...cnt.entries()].sort((x, y) => y[1] - x[1])[0] || [''])[0];
+    const left = info.why === 'đã nghỉ việc';
+    const g = mk('ghost', { name: raw, dept, title: left ? 'Đã nghỉ việc' : 'Phụ trách',
+      tagText: left ? 'Cần cập nhật quản lý mới' : 'Ngoài danh sách nhân sự', children: ppl, why: info.why });
+    ppl.forEach(p => { p.parent = g; delete p.orphanOf; });
+    ghosts.push(g);
+  }
+  // Cố vấn / nguyên giám đốc: không có quản lý và không có cấp dưới → đặt cạnh ô Toàn công ty
+  for (const n of [...tops]) if (!n.children.length && ADVISOR_RE.test(n.title)) { tops.splice(tops.indexOf(n), 1); advisors.push(n); }
+  for (const n of [...tops]) if (tops.length > 1 && !n.children.length && sortKey(n) > 3) { tops.splice(tops.indexOf(n), 1); loners.push(n); }
+  const mainTop = [...tops].sort((x, y) => countAll(y) - countAll(x))[0];
+  ghosts.forEach(g => { if (mainTop) { g.parent = mainTop; mainTop.children.push(g); } else tops.push(g); });
+
+  const root = mk('root', { name: cfg.filterValue || 'Toàn công ty', chip: `${rows.length} nhân sự` });
+  const extras = [];
+  if (stray.length) extras.push(mk('orphan', { name: 'Chưa khớp quản lý', chip: `${stray.length} người`, children: stray,
+    title: 'Ô "Quản lý trực tiếp" không tìm thấy người tương ứng' }));
+  if (loners.length) extras.push(mk('orphan', { name: 'Chưa ghi quản lý', chip: `${loners.length} người`, children: loners,
+    title: 'Ô "Quản lý trực tiếp" đang để trống' }));
+  extras.forEach(g => g.children.forEach(c => c.parent = g));
+  root.children = [...tops.filter(t => !t.parent || t.kind === 'ghost' || !pid.get(t.recordId)), ...extras];
+  root.children.forEach(c => c.parent = root);
+  root.advisors = advisors;
+  advisors.forEach(x => x.parent = root);
+  sortTree(root);
+  diag = { mode: 'parent', ghosts: ghosts.map(g => ({ name: g.name, n: g.children.length, why: g.why, under: g.parent && g.parent.kind !== 'root' ? g.parent.name : '' })),
+    stray: stray.map(p => p.name), selfRef, cycles, dupCodes: [...dupCodes], loners, tops: tops.length, advisors: advisors.map(x => x.name) };
+  const collapseFrom = (n, d) => { if (n.children.length) { n.collapsed = n.kind === 'orphan' ? true : d >= 2; n.children.forEach(c => collapseFrom(c, d + 1)); } };
+  collapseFrom(root, 0);
+  root.collapsed = false;
+  return root;
+}
+
+/* Tìm người quản lý từ nội dung ô "Quản lý trực tiếp" */
+function makeResolver(cfg, nodes) {
+  const meta = fieldMetas.find(f => f.id === cfg.parent);
+  const isLink = meta && (meta.type === FieldType.SingleLink || meta.type === FieldType.DuplexLink);
+  const exact = new Map(), loose = new Map(), codes = new Map();
+  const add = (map, k, id) => { if (!k) return; map.set(k, map.has(k) && map.get(k) !== id ? null : id); };
+  for (const [id, n] of nodes) {
+    for (const nm of [n.name, n.alias]) { add(exact, vk(nm), id); add(loose, fold(nm), id); }
+    if (n.code) add(codes, n.code.toUpperCase(), id);
+  }
+  return (v) => {
+    if (isLink) { const id = linkIds(v)[0]; return id && nodes.has(id) ? id : null; }
+    const t = norm(toText(v));
+    if (!t) return null;
+    const up = t.toUpperCase();
+    if (codes.get(up)) return codes.get(up);
+    for (const m of up.matchAll(/[A-Z]{1,6}[-_.]?\d{2,}/g)) if (codes.get(m[0])) return codes.get(m[0]);
+    const parts = [t, ...t.split(/\s*[-–,;|()]\s*/).filter(Boolean)];
+    for (const p of parts) { const id = exact.get(vk(p)); if (id) return id; }
+    for (const p of parts) { const id = loose.get(fold(p)); if (id) return id; }
+    return null;
+  };
+}
+const shortName = (s) => norm(s).length <= 16 ? norm(s) : norm(s).split(' ').slice(-2).join(' ');
+
+/* Cơ cấu theo thang chức danh.
+   layout 'staff' (cơ cấu nhân sự): Lãnh đạo → Trưởng phòng → Phó phòng → Trưởng nhóm → Chuyên viên/Nhân viên/Thực tập,
+     vị trí còn trống hiện ô "Vị trí trống" theo tùy chọn.
+   layout 'org' (cơ cấu tổ chức): chỉ lãnh đạo và các phòng ban.
+   Phòng ban đặt dưới lãnh đạo ghi ở cột "Quản lý bộ phận"; cột "Quản lý trực tiếp" dùng để xếp nhóm và hiện nhãn QL. */
+function buildByStructure(cfg, lay) {
+  const org = lay === 'org';
+  const slots = { ...DEFAULT_SLOTS, ...(cfg.slots || {}) };
+  const rows = filteredRows(cfg);
+  const nodes = new Map();
+  rows.forEach(r => nodes.set(r.recordId, personFromRecord(r, cfg)));
+  const resolve = cfg.parent ? makeResolver(cfg, nodes) : () => null;
+  const resolveMgr = cfg.deptMgr ? makeResolver({ ...cfg, parent: cfg.deptMgr }, nodes) : () => null;
+  for (const r of rows) {
+    const n = nodes.get(r.recordId);
+    n.opsRaw = cfg.parent ? norm(toText(r.fields[cfg.parent])) : '';
+    const id = cfg.parent ? resolve(r.fields[cfg.parent]) : null;
+    n.opsId = id && id !== r.recordId ? id : null;
+    const mid = cfg.deptMgr ? resolveMgr(r.fields[cfg.deptMgr]) : null;
+    n.mgrId = mid && mid !== r.recordId ? mid : null;
+  }
+  const attach = (p, c) => { c.parent = p; p.children.push(c); };
+  const byName = (a, b) => a.name.localeCompare(b.name, 'vi');
+  const lvOf = (n) => rankOf(n.title);
+  const byRank = (a, b) => lvOf(a) - lvOf(b) || byName(a, b);
+  const vacant = (label, p) => mk('vacant', { name: 'Vị trí trống', title: label, ...p });
+  const people = [...nodes.values()];
+  const root = mk('root', { name: cfg.filterValue || 'Toàn công ty', chip: `${rows.length} nhân sự` });
+
+  // 1. Lãnh đạo: Chủ tịch → Giám đốc → Phó GĐ; cố vấn đứng cạnh
+  const advisors = people.filter(n => ADVISOR_RE.test(n.title));
+  const levels = [];
+  let prev = [root];
+  for (const v of [0, 1, 2]) {
+    let arr = people.filter(n => !advisors.includes(n) && Math.floor(lvOf(n)) === v).sort(byName);
+    if (!arr.length) { if (!slots.lead) continue; arr = [vacant(LEVEL_LABEL[v], { level: v })]; }
+    arr.forEach(n => {
+      n.isLeader = true;
+      const m = n.opsId && nodes.get(n.opsId);
+      attach(m && prev.includes(m) ? m : prev[0], n);
+    });
+    levels.push(arr); prev = arr;
+  }
+  root.advisors = advisors; advisors.forEach(a => a.parent = root);
+  const lowest = levels.length ? levels[levels.length - 1] : [root];
+  const leaderFor = (ms, head) => {
+    const cnt = new Map();
+    ms.forEach(m => { if (m.mgrId) cnt.set(m.mgrId, (cnt.get(m.mgrId) || 0) + 1); });
+    const best = [...cnt.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (best) { const M = nodes.get(best[0]); if (M && M.isLeader) return M; }
+    const m = head && head.opsId && nodes.get(head.opsId);
+    if (m && m.isLeader && (cfg.deptUnder === 'manager' || lowest.includes(m))) return m;
+    return lowest[0];
+  };
+
+  // 2. Từng phòng ban
+  const depts = new Map();
+  people.filter(n => !n.isLeader && !advisors.includes(n)).forEach(n => {
+    const d = n.dept || '(Chưa có phòng ban)'; n.dept = d;
+    if (!depts.has(d)) depts.set(d, []);
+    depts.get(d).push(n);
+  });
+  const noHead = [], hints = [];
+  for (const [d, ms] of depts) {
+    ms.sort(byRank);
+    const inDept = new Set(ms);
+    // Ai đang phụ trách phòng (khi chưa có Trưởng phòng)
+    const cnt = new Map();
+    ms.forEach(m => {
+      const k = m.opsId && !inDept.has(nodes.get(m.opsId)) ? m.opsId : (!m.opsId && m.opsRaw ? 'raw:' + m.opsRaw : '');
+      if (k) cnt.set(k, (cnt.get(k) || 0) + 1);
+    });
+    const topK = [...cnt.entries()].sort((a, b) => b[1] - a[1])[0];
+    let ic = null;
+    if (topK && topK[0].startsWith('raw:')) ic = { name: topK[0].slice(4), ghost: true };
+    else if (topK) ic = { name: nodes.get(topK[0]).name, node: nodes.get(topK[0]) };
+    const TP = ms.filter(m => lvOf(m) === 3), PP = ms.filter(m => lvOf(m) === 4);
+    const anchor = leaderFor(ms, TP[0]);
+    if (!ic && anchor && anchor.kind === 'person') ic = { name: anchor.name, node: anchor };
+    if (!TP.length) noHead.push(d);
+    const icText = ic ? `${ic.name} phụ trách` : '';
+
+    // --- Sơ đồ cơ cấu tổ chức: mỗi phòng một ô ---
+    if (org) {
+      const C = mk('dept', { name: d, dept: d, chip: `${ms.length} người`, members: ms });
+      if (TP[0]) { C.headName = TP[0].name; C.headTitle = TP[0].title; C.recordId = TP[0].recordId; C.code = TP[0].code; }
+      else { C.headName = 'Chưa có Trưởng phòng'; C.headTitle = icText; C.vacantHead = true; }
+      attach(anchor, C);
+      continue;
+    }
+
+    // --- Sơ đồ cơ cấu nhân sự ---
+    let top;
+    if (TP.length) { top = TP[0]; TP.forEach(t => t.deptHead = true); TP.slice(1).forEach(t => attach(anchor, t)); }
+    else if (slots.tp) top = vacant('Trưởng phòng', { dept: d, level: 3, deptHead: true, sub: icText, tagText: ic && ic.ghost ? 'Ngoài danh sách nhân sự' : '' });
+    else top = mk('dept', { name: d, dept: d, chip: `${ms.length} người`, headName: 'Chưa có Trưởng phòng', headTitle: icText });
+    attach(anchor, top);
+    if (!cfg.deptMgr && !TP.length && ic && ic.node && !ic.node.isLeader) hints.push([top, ic.node]);
+
+    let mids = PP.slice();
+    if (!mids.length && slots.pp) mids = [vacant('Phó phòng', { dept: d, level: 4 })];
+    mids.forEach(p => attach(top, p));
+    const midFor = (m) => { const x = m && m.opsId && PP.find(p => p.recordId === m.opsId); return x || mids[0] || top; };
+    const leaders = new Map();
+    [top, ...PP].forEach(x => x.recordId && leaders.set(x.recordId, x));
+    const addVacantStaff = (box, members, team) => {
+      [['cv', 6], ['nv', 7], ['tt', 8]].forEach(([k, L]) => {
+        if (slots[k] && !members.some(m => Math.floor(lvOf(m)) === L)) attach(box, vacant(LEVEL_LABEL[L], { dept: d, team, level: L }));
+      });
+    };
+
+    const others = ms.filter(m => lvOf(m) >= 5);
+    const byTeam = new Map(), noTeam = [];
+    others.forEach(m => { if (m.team) { if (!byTeam.has(m.team)) byTeam.set(m.team, []); byTeam.get(m.team).push(m); } else noTeam.push(m); });
+    // Nhóm có trưởng nhóm trước, để nhóm chưa có trưởng nhóm có thể xếp dưới trưởng nhóm phụ trách
+    const teams = [...byTeam.entries()].sort((a, b) => (b[1].some(m => lvOf(m) === 5) - a[1].some(m => lvOf(m) === 5)));
+    for (const [t, arr] of teams) {
+      arr.sort(byRank);
+      const lead = arr.find(m => lvOf(m) === 5);
+      const members = arr.filter(m => m !== lead);
+      if (lead) {
+        lead.teamLead = t;
+        attach(midFor(lead), lead);
+        members.forEach(m => attach(lead, m));
+        addVacantStaff(lead, members, t);
+        leaders.set(lead.recordId, lead);
+        continue;
+      }
+      // Nhóm chưa có trưởng nhóm: nếu do trưởng nhóm khác trong phòng quản lý thì xếp dưới người đó
+      const c2 = new Map();
+      members.forEach(m => { const L = m.opsId && leaders.get(m.opsId); if (L && L !== top && !mids.includes(L)) c2.set(L, (c2.get(L) || 0) + 1); });
+      const owner = [...c2.entries()].sort((a, b) => b[1] - a[1])[0];
+      if (owner) {
+        const box = members.length > 1 ? mk('group', { name: t, dept: d, team: t, chip: `${members.length} người` }) : null;
+        if (box) { members.forEach(m => attach(box, m)); attach(owner[0], box); } else members.forEach(m => attach(owner[0], m));
+      } else if (slots.team) {
+        const box = vacant('Trưởng nhóm', { dept: d, team: t, teamLead: t, level: 5 });
+        attach(midFor(members.find(m => m.opsId)), box);
+        members.forEach(m => attach(box, m));
+        addVacantStaff(box, members, t);
+      } else {
+        const parent = midFor(members.find(m => m.opsId));
+        if (byTeam.size === 1 && !noTeam.length) members.forEach(m => attach(parent, m));
+        else { const g = mk('group', { name: t, dept: d, team: t, chip: `${members.length} người` }); members.forEach(m => attach(g, m)); attach(parent, g); }
+      }
+    }
+    noTeam.forEach(m => { const L = m.opsId && leaders.get(m.opsId); attach(L || midFor(m), m); });
+    if (!byTeam.size && !noTeam.length) addVacantStaff(mids[0] || top, [], '');
+  }
+  // Phòng chưa có trưởng phòng, do trưởng phòng khác phụ trách (khi không dùng cột Quản lý bộ phận)
+  const isAncestor = (a, n) => { for (let p = n; p; p = p.parent) if (p === a) return true; return false; };
+  for (const [top, owner] of hints) {
+    if (isAncestor(top, owner)) continue;
+    const p = top.parent; p.children.splice(p.children.indexOf(top), 1); attach(owner, top);
+  }
+
+  // 3. Nhãn người duyệt phép khi khác cấp trên trên sơ đồ
+  let opsDiff = 0;
+  if (!org) for (const n of people) {
+    if (n.isLeader || n.deptHead || !n.opsId) continue;
+    let p = n.parent;
+    while (p && (p.kind === 'group' || p.kind === 'vacant')) p = p.parent;   // bỏ qua ô nhóm và ô vị trí trống
+    const boss = p && p.kind === 'person' ? p.recordId : null;
+    if (boss !== n.opsId) { n.opsName = nodes.get(n.opsId).name; opsDiff++; }
+  }
+  sortTree(root);
+  diag = { mode: 'structure', noHead, opsDiff, noLeaders: !people.some(n => n.isLeader) };
+  const collapse = (n) => { if (n.children.length) { n.collapsed = !org && !!(n.deptHead || n.kind === 'dept'); n.children.forEach(collapse); } };
+  collapse(root);
+  return root;
+}
+
+function buildByGroup(cfg) {
+  const rows = filteredRows(cfg);
+  const depts = new Map();
+  for (const r of rows) {
+    const p = personFromRecord(r, cfg);
+    p.dept = p.dept || '(Chưa có phòng ban)';
+    if (!depts.has(p.dept)) depts.set(p.dept, []);
+    depts.get(p.dept).push(p);
+  }
+  const byRank = (a, b) => sortKey(a) - sortKey(b) || a.name.localeCompare(b.name, 'vi');
+  function deptNode(d, members, isRoot) {
+    members.sort(byRank);
+    const node = mk(isRoot ? 'root' : 'dept', { name: d, dept: d, chip: `${members.length} người` });
+    let rest = members;
+    if (isRoot) {
+      node.extra = members.slice(0, 4).map(m => `${m.name} · ${m.title}`);
+      if (members.length > 4) node.extra.push(`+${members.length - 4} người`);
+      rest = members.slice(4);
+    } else if (members[0] && sortKey(members[0]) <= 5) {
+      node.headName = members[0].name;
+      node.code = members[0].code;
+      node.headTitle = members[0].title;
+      node.recordId = members[0].recordId;
+      rest = members.slice(1);
+    }
+    // Ưu tiên chia theo Nhóm nếu có, không thì theo Chức danh
+    const keyOf = (m) => (cfg.team && m.team) ? m.team : (m.title || 'Khác');
+    const buckets = new Map();
+    for (const m of rest) { const k = keyOf(m); if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(m); }
+    const groups = [...buckets.entries()].sort((a, b) => Math.min(...a[1].map(sortKey)) - Math.min(...b[1].map(sortKey)) || b[1].length - a[1].length);
+    for (const [t, ms] of groups) {
+      ms.sort(byRank);
+      if (ms.length === 1 || groups.length === 1) { ms.forEach(m => { m.parent = node; node.children.push(m); }); continue; }
+      const g = mk('group', { name: t, dept: d, chip: `${ms.length} người`, parent: node });
+      ms.forEach(m => { m.parent = g; g.children.push(m); });
+      g.collapsed = true;
+      node.children.push(g);
+    }
+    return node;
+  }
+  const leader = [...depts.keys()].find(isLeadershipDept);
+  const root = leader ? deptNode(leader, depts.get(leader), true)
+    : mk('root', { name: cfg.filterValue || 'Toàn công ty', chip: `${rows.length} nhân sự` });
+  [...depts.entries()].filter(([d]) => d !== leader).sort((a, b) => b[1].length - a[1].length)
+    .forEach(([d, ms]) => { const n = deptNode(d, ms, false); n.collapsed = true; n.parent = root; root.children.push(n); });
+  diag = { mode: 'group' };
+  return root;
+}
+
+function buildTree(cfg) {
+  const struct = cfg.mode === 'structure';
+  $('layoutSeg').classList.toggle('hide', !struct);
+  document.querySelectorAll('#layoutSeg [data-layout]').forEach(b => b.classList.toggle('on', b.dataset.layout === layout));
+  return cfg.mode === 'group' ? buildByGroup(cfg) : struct ? buildByStructure(cfg, layout) : buildByParent(cfg);
+}
+/* Dựng lại cây (khi đổi chế độ xem) mà không đọc lại dữ liệu */
+function rebuild() {
+  const cfg = readConfig();
+  keySeq = 0;
+  tree = buildTree(cfg);
+  indexTree(); assignColors(); fillDeptFilter(); applyDeptFilter();
+  selectedKey = null; $('detail').classList.remove('show');
+  firstRender = true; render(); updateStats(cfg); showDiagnostics();
+}
+function setLayout(l) {
+  if (layout === l) return;
+  layout = l; layoutTouched = true;
+  if (tree) rebuild();
+}
+
+function indexTree() {
+  nodeByKey = new Map();
+  const walk = (n) => { nodeByKey.set(n.key, n); n.children.forEach(walk); (n.advisors || []).forEach(walk); };
+  walk(tree);
+}
+function assignColors() {
+  const count = new Map();
+  for (const n of nodeByKey.values()) {
+    if (n.kind === 'person' && n.dept) count.set(n.dept, (count.get(n.dept) || 0) + 1);
+    else if (n.kind === 'dept' && n.members) count.set(n.dept, (count.get(n.dept) || 0) + n.members.length);
+  }
+  deptColors = new Map();
+  [...count.entries()].sort((a, b) => b[1] - a[1]).forEach(([d], i) => deptColors.set(d, PALETTE[i % PALETTE.length]));
+}
+const countAll = (n) => n.children.reduce((s, c) => s + (c.kind === 'person' ? 1 : 0) + countAll(c), 0);
+
+/* ============ Vẽ ============ */
+function urlFromCell(v) {
+  if (!v) return '';
+  if (typeof v === 'string') return /^https?:\/\//i.test(v.trim()) ? v.trim() : '';
+  if (Array.isArray(v)) { for (const x of v) { const u = urlFromCell(x); if (u) return u; } return ''; }
+  if (typeof v === 'object') return urlFromCell(v.link) || urlFromCell(v.url) || urlFromCell(v.text) || '';
+  return '';
+}
+/* Lấy link ảnh: trường Tệp đính kèm (qua SDK) hoặc cột chứa link ảnh */
+async function loadPhotos(cfg, rows) {
+  const seq = ++photoSeq;
+  const next = new Map();
+  const meta = cfg.photo && fieldMetas.find(f => f.id === cfg.photo);
+  if (meta) {
+    const has = (v) => v && !(Array.isArray(v) && !v.length);
+    const withVal = rows.filter(r => has(r.fields[cfg.photo]));
+    if (meta.type === FieldType.Attachment) {
+      if (!currentTable || snapMode) return;
+      const field = await currentTable.getFieldById(cfg.photo);
+      for (let i = 0; i < withVal.length; i += 10) {
+        const chunk = withVal.slice(i, i + 10);
+        const res = await Promise.all(chunk.map(r => field.getAttachmentUrls(r.recordId).catch(() => [])));
+        if (seq !== photoSeq) return;
+        chunk.forEach((r, j) => {
+          const vals = Array.isArray(r.fields[cfg.photo]) ? r.fields[cfg.photo] : [];
+          const idx = Math.max(0, vals.findIndex(a => /^image\//.test((a && a.type) || '')));
+          const u = (res[j] || [])[idx] || (res[j] || [])[0];
+          if (u) next.set(r.recordId, u);
+        });
+      }
+    } else {
+      for (const r of withVal) { const u = urlFromCell(r.fields[cfg.photo]); if (u) next.set(r.recordId, u); }
+    }
+  }
+  if (seq === photoSeq) photoUrls = next;
+}
+function avHTML(n) {
+  const who = n.kind === 'dept' ? ((n.recordId || n.dashed) ? n.headName : '') : (n.kind === 'person' || n.kind === 'ghost') ? n.name : '';
+  const url = (n.kind === 'person' || n.kind === 'dept') && n.recordId ? photoUrls.get(n.recordId) : '';
+  if (url) return { cls: ' has-img', html: `<img src="${esc(url)}" alt="" referrerpolicy="no-referrer" data-ini="${esc(initials(who))}">` };
+  if (who) return { cls: '', html: esc(initials(who)) };
+  return { cls: '', html: ICON[n.kind] || ICON.dept };
+}
+/* Trưởng bộ phận = người đứng đầu nhánh của một phòng ban (cấp trên thuộc phòng khác) */
+function isHead(n) {
+  if (n.kind === 'vacant') return !!(n.deptHead || n.isLeader);
+  if (n.kind === 'ghost' || n.kind === 'dept') return !!(n.dept || n.name);
+  if (n.kind !== 'person' || !n.dept) return false;
+  const p = n.parent;
+  const parentDept = p && p.kind !== 'root' ? p.dept : null;
+  return parentDept !== n.dept && (n.children.length > 0 || sortKey(n) <= 5);
+}
+/* Cấp hàng (để các ô cùng cấp chức danh nằm thẳng hàng) */
+function rowOf(n) {
+  if (n.kind === 'root') return -1;
+  if (n.isLeader) return Math.floor(n.level !== null && n.level !== undefined && n.kind === 'vacant' ? n.level : rankOf(n.title));
+  if (n.kind === 'dept' || n.deptHead) return 3;
+  if (n.kind === 'group' || n.teamLead) return 5;
+  const r = n.kind === 'vacant' && n.level !== null && n.level !== undefined ? n.level : Math.floor(rankOf(n.title));
+  return Math.min(Math.max(r, 3), 6);
+}
+const orgView = () => { const c = readConfig(); return c.mode === 'structure' && layout === 'org'; };
+function posCardHTML(n) {
+  const [c, cs] = colorOf(n.dept);
+  const label = n.kind === 'dept' ? n.name : (n.title || n.name);
+  return { head: false, pos: true, cls: n.kind === 'dept' ? ' dp-box' : ' lv', style: `--c:${c};--cs:${cs}`,
+    html: `<div class="info"><div class="nm" title="${esc(label)}">${esc(label)}</div></div>` };
+}
+function empBadge(v, showAll) {
+  if (!v) return '';
+  const cls = /chính\s*thức|official|permanent/i.test(v) ? 'off' : /thử\s*việc|probation/i.test(v) ? 'try' : /thực\s*tập|intern|học\s*việc/i.test(v) ? 'int' : 'oth';
+  if (cls === 'off' && !showAll) return '';
+  return `<span class="tag emp ${cls}" title="Trạng thái: ${esc(v)}">${esc(v)}</span>`;
+}
+function cardHTML(n, compact) {
+  if (n.kind !== 'root' && orgView()) return posCardHTML(n);
+  const parent = n.parent;
+  const [c, cs] = n.kind === 'root' ? ['#fff', 'rgba(255,255,255,.2)'] : colorOf(n.dept);
+  const head = isHead(n) || !!n.isLeader;
+  let name = n.name, title = n.title, chip = n.chip, band = '';
+  if (n.kind === 'dept') { band = n.name; name = n.headName || 'Chưa có trưởng bộ phận'; title = n.headTitle || ''; }
+  else if (n.isLeader) { band = n.title; title = ''; }
+  else if (head) band = n.dept || 'Chưa rõ phòng ban';
+  if (n.kind === 'person') {
+    const sameDept = parent && parent.kind !== 'root' && parent.dept === n.dept;
+    if (n.isLeader) chip = '';
+    else if (head) chip = n.team || '';
+    else if (sameDept) chip = n.team && n.team !== parent.team && n.team !== parent.teamLead ? n.team : '';
+    else chip = [n.dept, n.team].filter(Boolean).join(' · ');
+  }
+  if (n.kind === 'ghost') chip = '';
+  if (n.kind === 'vacant') chip = n.sub || '';
+  let bandCls = 'band';
+  if (!band && n.teamLead) { band = n.teamLead; bandCls = 'band team'; chip = ''; }
+  const cfgNow = readConfig();
+  const ops = n.opsName && cfgNow.showOps && cfgNow.mode === 'structure'
+    ? `<span class="tag ops" title="Quản lý trực tiếp (duyệt phép): ${esc(n.opsName)}">QL: ${esc(shortName(n.opsName))}</span>` : '';
+  const av = avHTML(n);
+  const code = cfgNow.showCode && n.code && (n.kind === 'person' || n.kind === 'dept') ? n.code : '';
+  const empTag = n.kind === 'person' ? empBadge(n.emp, cfgNow.showEmpAll) : '';
+  return {
+    head,
+    style: `--c:${c};--cs:${cs}`,
+    html: `${band ? `<div class="${bandCls}" title="${esc(band)}">${esc(band)}</div>` : ''}<div class="av${av.cls}">${av.html}</div><div class="info">
+      <div class="nm" title="${esc(name)}">${esc(name)}</div>
+      ${title || code ? `<div class="tt" title="${esc([code, title].filter(Boolean).join(' · '))}">${code ? `<span class="code">${esc(code)}</span>` : ''}${code && title ? ' · ' : ''}${esc(title)}</div>` : ''}
+      ${n.extra.map(x => `<div class="tt">${esc(x)}</div>`).join('')}
+      ${chip ? `<span class="dp" title="${esc(chip)}">${esc(chip)}</span>` : ''}${empTag}${n.tagText ? `<span class="tag">${esc(n.tagText)}</span>` : ''}${ops}</div>`,
+  };
+}
+
+function renderNode(n, inStack, cfg) {
+  const kids = n.children.filter(c => !c._hidden);
+  const li = document.createElement('li');
+  li.className = inStack ? 's' : 'n';
+  const card = document.createElement('div');
+  const { style, html, head, pos, cls } = cardHTML(n, inStack);
+  const aligned = cfg.mode === 'structure';
+  if (aligned && !inStack && n.parent) {
+    const pr = n.parent.kind === 'root' ? Math.min(...n.parent.children.map(rowOf)) - 1 : rowOf(n.parent);
+    const k = Math.max(0, rowOf(n) - pr - 1);
+    if (k) { const st = document.createElement('div'); st.className = 'stem'; st.style.setProperty('--k', k); li.appendChild(st); }
+  }
+  if (pos) { card.className = `card pos${cls}${n.kind === 'vacant' ? ' vacant' : ''}${kids.length ? ' has-kids' : ''}${n.key === selectedKey ? ' sel' : ''}`; }
+  else card.className = `card ${n.kind}${n.vacantHead ? ' vh' : ''}${head ? ' head' : ''}${n.teamLead && !head ? ' lead' : ''}${n.dashed ? ' ghost' : ''}${inStack ? ' compact' : ''}${kids.length ? ' has-kids' : ''}${n.key === selectedKey ? ' sel' : ''}`;
+  card.dataset.key = n.key;
+  card.setAttribute('style', style);
+  card.innerHTML = html;
+  if (kids.length) {
+    const tg = document.createElement('button');
+    tg.className = 'tg' + (n.collapsed ? ' closed' : '');
+    tg.textContent = n.collapsed ? `+${kids.length}` : '−';
+    tg.title = n.collapsed ? `Mở ${kids.length} cấp dưới trực tiếp (tổng ${countAll(n)} người)` : 'Thu gọn';
+    tg.dataset.toggle = n.key;
+    card.appendChild(tg);
+  }
+  if (n.advisors && n.advisors.length && !deptFilter) {
+    const box = document.createElement('div');
+    box.className = 'rootbox';
+    box.appendChild(card);
+    const wrap = document.createElement('div');
+    wrap.className = 'adv-wrap';
+    wrap.innerHTML = '<span class="adv-label">Cố vấn</span>';
+    n.advisors.forEach(a => {
+      const h = cardHTML(a, false), c = document.createElement('div');
+      c.className = `card ${h.pos ? 'pos' + h.cls : 'person'}${a.key === selectedKey ? ' sel' : ''}`; c.dataset.key = a.key;
+      c.setAttribute('style', h.style); c.innerHTML = h.html;
+      wrap.appendChild(c);
+    });
+    box.appendChild(wrap);
+    li.appendChild(box);
+    li.style.minWidth = (260 + 2 * (70 + n.advisors.length * 222)) + 'px';
+  } else li.appendChild(card);
+  if (kids.length && !n.collapsed) {
+    const vis = (c) => c.children.some(x => !x._hidden);
+    const leaves = kids.filter(c => !vis(c));
+    const branches = kids.filter(c => vis(c));
+    const ul = document.createElement('ul');
+    const extFor = () => { const k = aligned ? Math.max(0, 6 - rowOf(n) - 1) : 0; return k ? `calc(${k} * (var(--rowh, 90px) + 54px))` : ''; };
+    const compactOn = cfg.compact && !(cfg.mode === 'structure' && layout === 'org');   // cơ cấu tổ chức: luôn dàn ngang
+    if (compactOn && leaves.length >= 2 && !branches.length) {
+      // Toàn bộ cấp dưới là nhân viên cuối: xếp một cột dọc
+      ul.className = 'stack';
+      if (extFor()) ul.style.setProperty('--ext', extFor());
+      leaves.forEach(c => ul.appendChild(renderNode(c, true, cfg)));
+    } else if (compactOn && leaves.length >= 2) {
+      // Có cả quản lý và nhân viên cuối: quản lý xếp ngang, nhân viên cuối gom thành 1 cột ở bên phải
+      branches.forEach(c => ul.appendChild(renderNode(c, false, cfg)));
+      const bundle = document.createElement('li');
+      bundle.className = 'n bundle';
+      const sub = document.createElement('ul');
+      sub.className = 'stack';
+      if (extFor()) sub.style.setProperty('--ext', extFor());
+      leaves.forEach(c => sub.appendChild(renderNode(c, true, cfg)));
+      bundle.appendChild(sub);
+      ul.appendChild(bundle);
+    } else {
+      kids.forEach(c => ul.appendChild(renderNode(c, false, cfg)));
+    }
+    li.appendChild(ul);
+  }
+  return li;
+}
+
+/* ---------- Lọc theo phòng ban ngay trên khối ---------- */
+function deptList() {
+  const cnt = new Map();
+  for (const n of nodeByKey.values()) if (n.kind === 'person' && n.dept) cnt.set(n.dept, (cnt.get(n.dept) || 0) + 1);
+  return [...cnt.entries()].sort((a, b) => a[0].localeCompare(b[0], 'vi'));
+}
+function fillDeptFilter() {
+  const sel = $('selDeptFilter');
+  const list = deptList();
+  sel.innerHTML = `<option value="">Tất cả phòng ban</option>` + list.map(([d, c]) => `<option value="${esc(d)}">${esc(d)} (${c})</option>`).join('');
+  if (deptFilter && !list.some(([d]) => d === deptFilter)) deptFilter = '';
+  sel.value = deptFilter;
+  sel.classList.toggle('on', !!deptFilter);
+  sel.parentElement.classList.toggle('hide', list.length < 2);
+}
+function applyDeptFilter() {
+  const d = deptFilter;
+  const walk = (n, inDept) => {
+    const mine = inDept || (n.dept === d && n.kind !== 'root');
+    let any = mine;
+    for (const c of n.children) any = walk(c, mine) || any;
+    n._hidden = d ? !any : false;
+    n._inDept = mine;
+    return any;
+  };
+  if (!tree) return;
+  walk(tree, false);
+  tree._hidden = false;
+  if (d) for (const n of nodeByKey.values()) if (!n._hidden && n.children.length) n.collapsed = false;   // mở hết nhánh của phòng ban
+}
+function setDeptFilter(v) {
+  deptFilter = v || '';
+  applyDeptFilter();
+  firstRender = true;
+  render();
+  const n = [...nodeByKey.values()].filter(x => x.kind === 'person' && !x._hidden && x._inDept).length;
+  toast(deptFilter ? `${deptFilter}: ${n} người` : 'Đang hiển thị tất cả phòng ban');
+}
+
+function cardScreenPos(key) {
+  const el = $('tree').querySelector(`.card[data-key="${key}"]`);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return { x: r.left, y: r.top };
+}
+function render(anchorKey) {
+  if (!tree) return;
+  const before = anchorKey ? cardScreenPos(anchorKey) : null;
+  const cfg = readConfig();
+  const t = $('tree');
+  t.classList.toggle('rect', cfg.shape === 'rect');
+  $('detail').classList.toggle('rect', cfg.shape === 'rect');
+  t.innerHTML = '';
+  t.classList.toggle('aligned', cfg.mode === 'structure');
+  t.style.removeProperty('--rowh');
+  const ul = document.createElement('ul');
+  ul.appendChild(renderNode(tree, false, cfg));
+  t.appendChild(ul);
+  if (cfg.mode === 'structure') {
+    // Cùng chiều cao cho mọi ô để các cấp chức danh nằm thẳng hàng giữa các nhánh
+    let h = 0;
+    t.querySelectorAll('li.n > .card:not(.root), li.n > .rootbox > .card:not(.root)').forEach(c => { h = Math.max(h, c.offsetHeight); });
+    if (h) t.style.setProperty('--rowh', h + 'px');
+  }
+  $('empty').style.display = 'none';
+  if (before) {
+    const after = cardScreenPos(anchorKey);
+    if (after) { view.x += before.x - after.x; view.y += before.y - after.y; applyView(); }
+  } else if (firstRender) { (dashMode === 'View' ? fit : fitReadable)(); firstRender = false; }
+}
+/* Lần đầu: vừa màn hình nếu chữ vẫn đọc được, nếu không thì giữ cỡ 80% và căn giữa vào thẻ trên cùng */
+function fitReadable() {
+  fit();
+  if (view.s >= 0.6) return;
+  const vp = $('viewport').getBoundingClientRect();
+  const top = $('tree').querySelector('.card');
+  view.s = 0.8; view.x = 0; view.y = 0; applyView();
+  if (top) {
+    const r = top.getBoundingClientRect();
+    view.x = vp.left + vp.width / 2 - (r.left + r.width / 2);
+    view.y = 16;
+    applyView();
+  }
+}
+
+/* ============ Phóng to / kéo ============ */
+const view = { x: 0, y: 0, s: 1 };
+function applyView() {
+  $('stage').style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.s})`;
+  $('zPct').textContent = Math.round(view.s * 100) + '%';
+}
+function zoomAt(factor, cx, cy) {
+  const vp = $('viewport').getBoundingClientRect();
+  cx = cx ?? vp.width / 2; cy = cy ?? vp.height / 2;
+  const ns = Math.min(2.5, Math.max(0.15, view.s * factor));
+  view.x = cx - (cx - view.x) * (ns / view.s);
+  view.y = cy - (cy - view.y) * (ns / view.s);
+  view.s = ns; applyView();
+}
+function fit() {
+  const vp = $('viewport').getBoundingClientRect();
+  const area = $('exportArea');
+  const w = area.offsetWidth, h = area.offsetHeight;
+  if (!w || !h) return;
+  const s = Math.max(0.2, Math.min(1, (vp.width - 20) / w, (vp.height - 20) / h));
+  view.s = s;
+  view.x = w * s < vp.width ? (vp.width - w * s) / 2 : 10;
+  view.y = h * s < vp.height ? Math.min(30, (vp.height - h * s) / 2) : 10;
+  applyView();
+}
+function centerOn(key) {
+  const el = $('tree').querySelector(`.card[data-key="${key}"]`);
+  if (!el) return;
+  const vp = $('viewport').getBoundingClientRect();
+  if (view.s < 0.75) { const r = el.getBoundingClientRect(); zoomAt(0.9 / view.s, r.left - vp.left + r.width / 2, r.top - vp.top + r.height / 2); }
+  const r2 = el.getBoundingClientRect();
+  view.x += vp.left + vp.width / 2 - (r2.left + r2.width / 2);
+  view.y += vp.top + vp.height / 3 - (r2.top + r2.height / 2);
+  applyView();
+  el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
+}
+(function setupPanZoom() {
+  const vp = $('viewport');
+  let drag = null;
+  vp.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.card') || e.button !== 0) return;
+    try { const sel = getSelection(); if (sel && !sel.isCollapsed) sel.removeAllRanges(); } catch (er) {}
+    drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
+    vp.setPointerCapture(e.pointerId); vp.classList.add('dragging');
+  });
+  vp.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    view.x = drag.vx + e.clientX - drag.x; view.y = drag.vy + e.clientY - drag.y; applyView();
+  });
+  const end = () => { drag = null; vp.classList.remove('dragging'); };
+  vp.addEventListener('pointerup', end); vp.addEventListener('pointercancel', end);
+  vp.addEventListener('wheel', (e) => {
+    if (dashMode === 'View' && !(e.ctrlKey || e.metaKey)) return;   // để trang dashboard cuộn bình thường
+    e.preventDefault();
+    const r = vp.getBoundingClientRect();
+    if (e.ctrlKey || e.metaKey) zoomAt(Math.exp(-e.deltaY * 0.0025), e.clientX - r.left, e.clientY - r.top);
+    else { view.x -= e.deltaX; view.y -= e.deltaY; applyView(); }
+  }, { passive: false });
+  $('zIn').onclick = () => zoomAt(1.2);
+  $('zOut').onclick = () => zoomAt(1 / 1.2);
+  $('zPct').onclick = fit;
+})();
+
+/* ============ Tương tác ============ */
+$('tree').addEventListener('click', (e) => {
+  const tg = e.target.closest('[data-toggle]');
+  if (tg) { const n = nodeByKey.get(tg.dataset.toggle); if (n) { n.collapsed = !n.collapsed; render(n.key); } return; }
+  const card = e.target.closest('.card');
+  if (card) {
+    const n = nodeByKey.get(card.dataset.key);
+    if (!n) return;
+    if (n.kind !== 'person' && n.children.length && n.collapsed) { n.collapsed = false; render(n.key); }
+    select(n);
+  }
+});
+const onImgErr = (e) => {
+  const img = e.target;
+  if (!img || img.tagName !== 'IMG') return;
+  const av = img.parentElement;
+  if (av && av.classList.contains('av')) { av.classList.remove('has-img'); av.textContent = img.dataset.ini || ''; }
+};
+$('tree').addEventListener('error', onImgErr, true);
+$('detail').addEventListener('error', onImgErr, true);
+
+function select(n) {
+  selectedKey = n.key;
+  $('tree').querySelectorAll('.card.sel').forEach(el => el.classList.remove('sel'));
+  const el = $('tree').querySelector(`.card[data-key="${n.key}"]`);
+  if (el) el.classList.add('sel');
+  showDetail(n);
+}
+function reveal(n) {
+  if (n._hidden) { deptFilter = ''; $('selDeptFilter').value = ''; $('selDeptFilter').classList.remove('on'); applyDeptFilter(); }
+  for (let p = n.parent; p; p = p.parent) p.collapsed = false;
+  render();
+  select(n);
+  requestAnimationFrame(() => centerOn(n.key));
+}
+function showDetail(n) {
+  const cfg = readConfig();
+  const [c, cs] = n.kind === 'root' ? ['#3370ff', '#e8efff'] : n.kind === 'orphan' ? ['#a65400', '#ffe9cc'] : colorOf(n.dept);
+  const r = n.kind === 'person' && n.recordId && recordsById.get(n.recordId);
+  const people = n.children.filter(x => x.kind === 'person');
+  const mgr = n.parent && n.parent.kind === 'person' ? n.parent : null;
+  const memberChips = n.members ? `<div class="d-row"><div class="k">Nhân sự trong phòng (${n.members.length})</div><div class="chips">${n.members.map(m => `<span class="link" style="cursor:default">${esc(m.name)}</span>`).join('')}</div><div class="v" style="color:var(--muted);font-size:11px;margin-top:6px">Chuyển sang "Cơ cấu nhân sự" để xem chi tiết.</div></div>` : '';
+  let rows = '';
+  rows += memberChips;
+  if (n.orphanOf) rows += `<div class="d-row"><div class="k">⚠️ Quản lý ghi trong bảng</div><div class="v">"${esc(n.orphanOf)}" — không tìm thấy người này trong sơ đồ</div></div>`;
+  const structMode = cfg.mode === 'structure';
+  if (structMode && n.kind === 'person' && n.opsRaw) {
+    const om = n.opsId && [...nodeByKey.values()].find(x => x.recordId === n.opsId && x.kind === 'person');
+    rows += `<div class="d-row"><div class="k">Quản lý trực tiếp (duyệt phép)</div><div class="v">${om ? `<span class="link" data-goto="${om.key}">${esc(om.name)}</span>` : esc(n.opsRaw)}</div></div>`;
+  }
+  if (n.teamLead) rows += `<div class="d-row"><div class="k">Trưởng nhóm</div><div class="v">${esc(n.teamLead)}</div></div>`;
+  if (mgr) rows += `<div class="d-row"><div class="k">${structMode ? 'Cấp trên trên sơ đồ' : 'Quản lý trực tiếp'}</div><div class="v"><span class="link" data-goto="${mgr.key}">${esc(mgr.name)}</span>${mgr.title ? ` · ${esc(mgr.title)}` : ''}</div></div>`;
+  if (people.length) rows += `<div class="d-row"><div class="k">${n.kind === 'person' ? 'Cấp dưới trực tiếp' : 'Thành viên'}</div><div class="chips">${people.slice(0, 50).map(x => `<span class="link" data-goto="${x.key}">${esc(x.name)}</span>`).join('')}${people.length > 50 ? `<span>+${people.length - 50}</span>` : ''}</div></div>`;
+  if (r) {
+    const skip = new Set([cfg.name, cfg.parent]);
+    rows += fieldMetas.filter(f => !skip.has(f.id)).map(f => {
+      const t = fmtCell(f, r.fields[f.id]);
+      return t ? `<div class="d-row"><div class="k">${esc(f.name)}</div><div class="v">${esc(t)}</div></div>` : '';
+    }).join('');
+  }
+  const avd = avHTML(n);
+  $('detail').innerHTML = `
+    <div class="d-head" style="--c:${c};--cs:${cs}">
+      <div class="av${avd.cls}">${avd.html}</div>
+      <div><h3>${esc(n.name)}</h3><p>${esc(n.title || n.chip || '')}</p></div>
+      <button class="d-close" id="dClose" title="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="d-kpis">
+      <div class="kpi"><b>${n.children.length}</b><span>${n.kind === 'person' ? 'Cấp dưới trực tiếp' : 'Mục trực thuộc'}</span></div>
+      <div class="kpi"><b>${countAll(n)}</b><span>Tổng số người bên dưới</span></div>
+    </div>
+    <div class="d-body">${rows || '<div class="d-row"><div class="v" style="color:var(--muted)">Không có thêm thông tin.</div></div>'}</div>`;
+  $('detail').classList.add('show');
+  $('dClose').onclick = () => { $('detail').classList.remove('show'); selectedKey = null; $('tree').querySelectorAll('.card.sel').forEach(el => el.classList.remove('sel')); };
+  $('detail').querySelectorAll('[data-goto]').forEach(el => el.onclick = () => { const t = nodeByKey.get(el.dataset.goto); if (t) reveal(t); });
+}
+
+/* ============ Tìm kiếm ============ */
+(function setupSearch() {
+  const q = $('q'), box = $('sugg');
+  let hits = [], act = 0;
+  const show = () => {
+    box.innerHTML = hits.map((n, i) => `<button class="${i === act ? 'act' : ''}" data-i="${i}"><b>${esc(n.name)}</b><small>${esc([n.code, n.title, n.dept].filter(Boolean).join(' · '))}</small></button>`).join('')
+      || '<div style="padding:8px;color:var(--muted);font-size:12px">Không tìm thấy</div>';
+    box.classList.add('show');
+  };
+  q.addEventListener('input', () => {
+    if (layout === 'org' && q.value.trim() && readConfig().mode === 'structure') setLayout('staff');
+    const k = fold(q.value);
+    if (!k || !tree) { box.classList.remove('show'); return; }
+    hits = [...nodeByKey.values()].filter(n => n.kind === 'person' && fold(`${n.name} ${n.alias || ''} ${n.code} ${n.title}`).includes(k)).slice(0, 12);
+    act = 0; show();
+  });
+  q.addEventListener('keydown', (e) => {
+    if (!box.classList.contains('show')) return;
+    if (e.key === 'ArrowDown') { act = Math.min(hits.length - 1, act + 1); show(); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { act = Math.max(0, act - 1); show(); e.preventDefault(); }
+    if (e.key === 'Enter' && hits[act]) { reveal(hits[act]); box.classList.remove('show'); }
+    if (e.key === 'Escape') box.classList.remove('show');
+  });
+  box.addEventListener('mousedown', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (b) { e.preventDefault(); reveal(hits[+b.dataset.i]); box.classList.remove('show'); }
+  });
+  q.addEventListener('blur', () => setTimeout(() => box.classList.remove('show'), 150));
+})();
+
+/* ============ Cảnh báo dữ liệu ============ */
+function showDiagnostics() {
+  const el = $('notice'), msgs = [];
+  const names = (a) => esc(a.slice(0, 4).join(', ')) + (a.length > 4 ? `… (+${a.length - 4})` : '');
+  if (diag.mode === 'parent') {
+    for (const g of diag.ghosts.slice(0, 4))
+      msgs.push(`<b>"${esc(g.name)}"</b> ${g.why} nhưng đang quản lý ${g.n} người → hiển thị dạng ô nét đứt${g.under ? ` dưới ${esc(g.under)}` : ''}.`);
+    if (diag.ghosts.length > 4) msgs.push(`…và ${diag.ghosts.length - 4} quản lý khác không có trong dữ liệu.`);
+    if (diag.stray.length) msgs.push(`<b>${diag.stray.length} người</b> có liên kết quản lý không hợp lệ: ${names(diag.stray)}.`);
+    if (diag.loners.length) msgs.push(`<b>${diag.loners.length} người</b> để trống ô Quản lý trực tiếp: ${names(diag.loners.map(p => p.name))}.`);
+    if (diag.tops > 1) msgs.push(`Có <b>${diag.tops} người</b> ở cấp cao nhất (không có quản lý). Nếu công ty chỉ có một người đứng đầu, hãy ghi quản lý cho những người còn lại.`);
+    if (diag.dupCodes.length) msgs.push(`Mã NV bị trùng: ${names(diag.dupCodes)}.`);
+    if (diag.selfRef.length) msgs.push(`Tự ghi chính mình là quản lý: ${names(diag.selfRef)}.`);
+    if (diag.cycles.length) msgs.push(`Quản lý vòng tròn (A quản lý B, B lại quản lý A): ${names(diag.cycles)}.`);
+  }
+  if (diag.mode === 'structure') {
+    if (diag.noLeaders) msgs.push('Không tìm thấy lãnh đạo (Chủ tịch / Giám đốc / Phó GĐ) trong cột Chức danh.');
+    if (diag.noHead.length) msgs.push(`Chưa có trưởng phòng: ${names(diag.noHead)}.`);
+    if (diag.opsDiff && readConfig().showOps) msgs.push(`${diag.opsDiff} người có Quản lý trực tiếp (duyệt phép) khác cấp trên trên sơ đồ, đang hiện nhãn <b>QL</b>.`);
+  }
+  el.innerHTML = msgs.length ? '<button class="nclose" title="Ẩn cảnh báo">×</button>⚠️ ' + msgs.join('<br>⚠️ ') : '';
+  const x = el.querySelector('.nclose'); if (x) x.onclick = () => el.classList.remove('show');
+  el.classList.toggle('show', msgs.length > 0);
+}
+function updateStats(cfg) {
+  const total = filteredRows(cfg).length;
+  const depts = new Set(cfg.dept ? filteredRows(cfg).map(r => norm(toText(r.fields[cfg.dept]))).filter(Boolean) : []);
+  const hidden = records.length - baseRows(cfg).length;
+  $('stats').textContent = `${total} nhân sự${depts.size ? ` · ${depts.size} phòng ban` : ''}${cfg.filterValue ? ` · ${cfg.filterValue}` : ''}${hidden > 0 ? ` · ẩn ${hidden} dòng nghỉ việc/trống` : ''}`;
+  $('legend').innerHTML = [...deptColors.entries()].map(([d, [c]]) => `<span><i style="background:${c}"></i>${esc(d)}</span>`).join('');
+}
+
+/* ============ Vẽ toàn bộ ============ */
+async function draw() {
+  if (!currentTable && !snapMode) return;
+  const cfg = readConfig();
+  if (!dashMode) { try { await bitable.bridge.setData(CONFIG_KEY, cfg); } catch (e) {} }
+  if (!filteredRows(cfg).length) {
+    $('tree').innerHTML = ''; tree = null;
+    $('empty').style.display = 'grid';
+    $('empty').innerHTML = '<div><b>Không có nhân sự nào để hiển thị</b>Kiểm tra lại cột Họ và tên, bộ lọc, hoặc tùy chọn ẩn người nghỉ việc.</div>';
+    markRendered();
+    return;
+  }
+  keySeq = 0;
+  tree = buildTree(cfg);
+  indexTree();
+  assignColors();
+  fillDeptFilter();
+  applyDeptFilter();
+  if (selectedKey && !nodeByKey.has(selectedKey)) { selectedKey = null; $('detail').classList.remove('show'); }
+  firstRender = true;
+  render();
+  updateStats(cfg);
+  showDiagnostics();
+  loadPhotos(cfg, filteredRows(cfg)).then(() => { if (tree && photoUrls.size) render(); })
+    .catch(() => toast('Không đọc được cột ảnh. Kiểm tra lại cột "Ảnh nhân viên" trong Cấu hình.', 5000))
+    .finally(markRendered);
+  $('config').classList.remove('open');
+}
+async function refresh(silent) {
+  lastRefreshAt = Date.now();
+  if (packMode && packSaved) {
+    try {
+      const v = { ...view };
+      await loadPacked(packSaved);
+      await draw();
+      Object.assign(view, v); applyView();
+      if (!silent) toast('Đã cập nhật dữ liệu mới nhất');
+    } catch (e) { dlog('pack.refresh.error', String(e && e.message || e)); if (!silent) toast('Chưa lấy được dữ liệu mới từ dashboard.', 5000); }
+    return;
+  }
+  if (snapMode) {
+    // Đang xem từ bản chụp: thử đọc trực tiếp nguồn dữ liệu
+    if (!liveConnect) return;
+    if (!silent) toast('Đang kết nối với nguồn dữ liệu…', 8000);
+    try {
+      await liveConnect();
+      setSnapNote(null);
+      await draw();
+      await autoSaveSnapshot(true);
+      if (!silent) toast('Đã cập nhật dữ liệu mới nhất');
+    } catch (e) {
+      dlog('refresh.live.fail', String(e && e.message || e));
+      if (!silent) toast('Base App không cho đọc nguồn này ở chế độ xem. Mở sửa khối → Lưu cấu hình để cập nhật.', 7000);
+    }
+    return;
+  }
+  if (!currentTable) return;
+  const openRecs = new Set([...nodeByKey.values()].filter(n => n.recordId && n.kind === 'person' && !n.collapsed).map(n => n.recordId));
+  const v = { ...view };
+  await reloadRecords();
+  refreshFilterValues($('selFilterValue').value);
+  await draw();
+  if (openRecs.size && tree) {
+    for (const n of nodeByKey.values()) if (n.kind === 'person' && n.children.length) n.collapsed = !openRecs.has(n.recordId);
+    render();
+  }
+  Object.assign(view, v); applyView();
+  await autoSaveSnapshot(!silent);
+  if (!silent) toast('Đã cập nhật dữ liệu mới nhất');
+}
+/* Ở chế độ xem: nếu dữ liệu đọc trực tiếp khác bản chụp đã lưu, lưu lại bản chụp
+   để những người xem khác (không đọc trực tiếp được) cũng thấy dữ liệu mới. */
+async function autoSaveSnapshot(force) {
+  if (!(dashMode === 'View' || dashMode === 'FullScreen') || !dashSaved || snapMode || !records.length) return;
+  if (dashSaved.customConfig && dashSaved.customConfig.packField) return;   // đã tự cập nhật qua cột, không cần bản chụp
+  if (!force && Date.now() - lastAutoSave < 5 * 60 * 1000) return;
+  try {
+    const cfg = { ...dashSaved.customConfig, ...readConfig() };
+    const sn = buildSnapshot(cfg);
+    const old = dashSaved.customConfig.snapshot;
+    if (old && JSON.stringify(old.rows) === JSON.stringify(sn.rows)) return;
+    if (new Blob([JSON.stringify(sn)]).size > 48000) return;
+    const payload = { customConfig: { ...cfg, snapshot: sn }, dataConditions: dashSaved.dataConditions || [] };
+    await withTimeout(dashboard.saveConfig(payload), 8000);
+    dashSaved = payload; lastAutoSave = Date.now();
+    dlog('autosave.ok', { rows: sn.rows.length });
+  } catch (e) { dlog('autosave.skip', String(e && e.message || e)); }
+}
+
+/* ============ Xuất ảnh / PDF ============ */
+function dateVN() { const d = new Date(); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; }
+let lostPhotos = 0;
+async function inlineImages(root) {
+  lostPhotos = 0;
+  const toData = (blob) => new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; fr.readAsDataURL(blob); });
+  await Promise.all([...root.querySelectorAll('img')].map(async (img) => {
+    if (img.src.startsWith('data:')) return;
+    try {
+      const res = await fetch(img.src, { mode: 'cors', credentials: 'omit' });
+      if (!res.ok) throw new Error(res.status);
+      img.src = await toData(await res.blob());
+      await img.decode().catch(() => {});
+    } catch (e) {
+      const av = img.parentElement;
+      if (av) { av.classList.remove('has-img'); av.textContent = img.dataset.ini || ''; }
+      lostPhotos++;
+    }
+  }));
+}
+async function capture(kind) {
+  if (typeof htmlToImage === 'undefined') throw new Error('Chưa tải được thư viện xuất ảnh. Kiểm tra kết nối mạng rồi thử lại.');
+  const area = $('exportArea'), cfg = readConfig();
+  $('exTitle').textContent = (cfg.blockTitle || (cfg.mode === 'structure' ? (layout === 'org' ? 'Sơ đồ cơ cấu tổ chức' : 'Sơ đồ cơ cấu nhân sự') : 'Sơ đồ tổ chức')) + (deptFilter ? ` · ${deptFilter}` : (cfg.filterValue && !cfg.blockTitle ? ` · ${cfg.filterValue}` : ''));
+  $('exSub').textContent = `${$('stats').textContent.replace(/ · ẩn .*$/, '')} · Cập nhật ngày ${dateVN()}`;
+  area.classList.add('exporting');
+  const bi = (kind === 'png' || kind === 'copy') ? bgInfo() : null;   // PDF luôn nền trắng để in
+  if (bi) { area.style.background = bi.rgba; area.classList.toggle('on-dark', bi.dark); }
+  const themeBefore = document.documentElement.dataset.theme;
+  document.documentElement.dataset.theme = 'light';
+  const saved = $('stage').style.transform;
+  $('stage').style.transform = 'none';
+  try {
+    await inlineImages(area);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const w = area.offsetWidth, h = area.offsetHeight;
+    const ratio = Math.max(0.6, Math.min(2.5, 12000 / Math.max(w, h)));
+    const opts = { backgroundColor: bi ? undefined : '#ffffff', pixelRatio: ratio, width: w, height: h,
+      imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==' };
+    let url;
+    try { url = await htmlToImage.toPng(area, opts); }
+    catch (e) { url = await htmlToImage.toPng(area, { ...opts, skipFonts: true }); }
+    return { url, w, h };
+  } finally {
+    area.classList.remove('exporting', 'on-dark'); area.style.background = '';
+    if (themeBefore) document.documentElement.dataset.theme = themeBefore; else delete document.documentElement.dataset.theme;
+    $('stage').style.transform = saved;
+    render();   // khôi phục ảnh gốc trên màn hình
+  }
+}
+function offerDownload(href, filename, previewUrl, note) {
+  if (lostPhotos) note += ` (${lostPhotos} ảnh không tải được để xuất nên được thay bằng chữ viết tắt.)`;
+  $('mText').textContent = note;
+  $('mPreview').innerHTML = previewUrl ? `<img src="${previewUrl}" alt="Xem trước">` : '';
+  $('mPreview').style.display = previewUrl ? 'block' : 'none';
+  const a = $('mDownload');
+  a.href = href; a.download = filename; a.target = '_blank'; a.rel = 'noopener';
+  $('modal').classList.add('show');
+}
+const PANZOOM_JS = `(function(){var vp=document.getElementById('viewport'),st=document.getElementById('stage'),v={x:0,y:0,s:1},d=null;
+function ap(){st.style.transform='translate('+v.x+'px,'+v.y+'px) scale('+v.s+')';}
+function fit(){var a=st.firstElementChild,w=a.offsetWidth,h=a.offsetHeight,W=innerWidth,H=innerHeight;v.s=Math.min(1,(W-20)/w,(H-20)/h);v.x=(W-w*v.s)/2;v.y=Math.max(10,(H-h*v.s)/2);ap();}
+vp.addEventListener('pointerdown',function(e){d={x:e.clientX,y:e.clientY,vx:v.x,vy:v.y};vp.setPointerCapture(e.pointerId);});
+vp.addEventListener('pointermove',function(e){if(!d)return;v.x=d.vx+e.clientX-d.x;v.y=d.vy+e.clientY-d.y;ap();});
+vp.addEventListener('pointerup',function(){d=null;});
+vp.addEventListener('wheel',function(e){e.preventDefault();var f=Math.exp(-e.deltaY*0.0025),n=Math.min(3,Math.max(0.1,v.s*f));v.x=e.clientX-(e.clientX-v.x)*(n/v.s);v.y=e.clientY-(e.clientY-v.y)*(n/v.s);v.s=n;ap();},{passive:false});
+addEventListener('resize',fit);addEventListener('load',fit);fit();})();`;
+async function exportHtml() {
+  const area = $('exportArea'), cfg = readConfig();
+  const title = cfg.blockTitle || 'Sơ đồ tổ chức';
+  $('exTitle').textContent = title;
+  $('exSub').textContent = `${$('stats').textContent.replace(/ · ẩn .*$/, '')} · Cập nhật ngày ${dateVN()}`;
+  area.classList.add('exporting');
+  try {
+    await inlineImages(area);
+    const css = [...document.querySelectorAll('style')].map(x => x.textContent).join('\n');
+    const html = `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(title)}</title><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>${css}
+html,body{overflow:hidden;height:100%}#viewport{position:fixed;inset:0;cursor:grab}#viewport:active{cursor:grabbing}#exportArea{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08)}.tg{pointer-events:none}
+.hint{position:fixed;left:12px;bottom:10px;font:12px "Be Vietnam Pro",sans-serif;color:#646a73;background:rgba(255,255,255,.9);padding:5px 10px;border-radius:7px}</style></head>
+<body><div id="viewport"><div id="stage">${area.outerHTML}</div></div><div class="hint">Kéo để di chuyển · Cuộn chuột để phóng to/thu nhỏ</div><script>${PANZOOM_JS}<\/script></body></html>`;
+    return html;
+  } finally {
+    area.classList.remove('exporting');
+    render();
+  }
+}
+async function doExport(kind) {
+  if (!tree) return toast('Chưa có sơ đồ để xuất');
+  if (kind === 'html') {
+    $('exportMenu').classList.remove('open');
+    try {
+      const html = await exportHtml();
+      const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+      offerDownload(url, `so-do-to-chuc-${new Date().toISOString().slice(0, 10)}.html`, null,
+        'Trang web xem được ngoài Lark (kéo, phóng to). Mở bằng trình duyệt, hoặc tải lên Netlify/Google Drive/SharePoint để chia sẻ link. Đây là bản chụp tại thời điểm xuất, sẽ không tự cập nhật.');
+    } catch (e) { toast('Xuất HTML lỗi: ' + e.message, 6000); }
+    return;
+  }
+  $('exportMenu').classList.remove('open');
+  const btn = $('btnExport'), old = btn.innerHTML;
+  btn.innerHTML = '<span class="spin"></span><span class="lbl">Đang xuất…</span>'; btn.disabled = true;
+  try {
+    const { url, w, h } = await capture(kind);
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (kind === 'copy') {
+      try {
+        const blob = await (await fetch(url)).blob();
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        toast('Đã sao chép ảnh sơ đồ. Mở Docs/tin nhắn và nhấn Ctrl+V để dán.', 5000);
+      } catch (e) {
+        dlog('copy.error', String(e && e.message || e));
+        offerDownload(url, `so-do-to-chuc-${stamp}.png`, url, 'Lark không cho sao chép trực tiếp từ khối này. Nhấn chuột phải vào ảnh bên dưới → "Sao chép hình ảnh", hoặc bấm "Tải xuống".');
+      }
+    } else if (kind === 'png') {
+      offerDownload(url, `so-do-to-chuc-${stamp}.png`, url, 'Bấm "Tải xuống" để lưu ảnh. Nếu không tải được, nhấn chuột phải vào ảnh bên dưới và chọn "Lưu hình ảnh".');
+    } else {
+      if (!window.jspdf) throw new Error('Chưa tải được thư viện PDF. Kiểm tra kết nối mạng rồi thử lại.');
+      const { jsPDF } = window.jspdf;
+      const landscape = w >= h;
+      const doc = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: kind });
+      const pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight(), m = 8;
+      const sc = Math.min((pw - 2 * m) / w, (ph - 2 * m) / h);
+      const iw = w * sc, ih = h * sc;
+      doc.addImage(url, 'PNG', (pw - iw) / 2, m, iw, ih, undefined, 'FAST');
+      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      const tiny = sc < 0.12;   // chữ 13px nhỏ hơn ~1.5mm khi in
+      offerDownload(blobUrl, `so-do-to-chuc-${kind.toUpperCase()}-${stamp}.pdf`, url,
+        `PDF khổ ${kind.toUpperCase()} ${landscape ? 'ngang' : 'dọc'}.` + (tiny ? ' Sơ đồ đang khá lớn nên chữ sẽ nhỏ khi in; nên thu gọn bớt, lọc theo công ty, hoặc chọn khổ A3.' : ''));
+    }
+  } catch (e) {
+    toast('Xuất file lỗi: ' + e.message, 6000);
+  } finally {
+    btn.innerHTML = old; btn.disabled = false;
+  }
+}
+$('btnExport').onclick = (e) => { e.stopPropagation(); $('exportMenu').classList.toggle('open'); };
+document.addEventListener('click', (e) => { if (!e.target.closest('#exportMenu')) $('exportMenu').classList.remove('open'); });
+$('exportMenu').querySelectorAll('[data-ex]').forEach(b => b.onclick = () => doExport(b.dataset.ex));
+$('mClose').onclick = () => $('modal').classList.remove('show');
+
+/* ============ Mở / thu gọn ============ */
+function setAll(n, c) { if (n.children.length) { n.collapsed = c; n.children.forEach(x => setAll(x, c)); } }
+$('btnExpand').onclick = () => { if (tree) { setAll(tree, false); render(); fit(); } };
+$('btnCollapse').onclick = () => {
+  if (!tree) return;
+  setAll(tree, true); tree.collapsed = false;
+  for (const n of nodeByKey.values()) if (n.isLeader) n.collapsed = false;
+  render(); fit();
+};
+
+/* ============ Khối dashboard & nhiều nguồn base ============ */
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('timeout')), ms))]);
+function urlParam(k) {
+  const h = location.hash.includes('?') ? location.hash.slice(location.hash.indexOf('?') + 1) : '';
+  return new URLSearchParams(location.search).get(k) || new URLSearchParams(h).get(k);
+}
+async function detectDashboard() {
+  if (!dashboard) return null;
+  if (urlParam('isCreate') === '1') return 'Create';
+  if (urlParam('isConfig') === '1') return 'Config';
+  if (urlParam('isFullScreen') === '1') return 'FullScreen';
+  try {
+    const c = await withTimeout(dashboard.getConfig(), 6000);
+    dlog('detect.getConfig', c);
+    return c && Array.isArray(c.dataConditions) ? 'View' : null;
+  } catch (e) { dlog('detect.getConfig.error', String(e && e.message || e)); return null; }
+}
+function markRendered() {
+  if (!dashMode || !dashboard) return;
+  clearTimeout(renderedTimer);
+  renderedTimer = setTimeout(() => { try { dashboard.setRendered(); } catch (e) {} }, 500);
+}
+async function applyTheme(t) {
+  if (!dashboard) return;
+  try { t = t || await withTimeout(dashboard.getTheme(), 2000); } catch (e) { return; }
+  const mode = String((t && (t.theme || t.themeMode)) || '').toLowerCase();
+  document.documentElement.dataset.theme = mode.includes('dark') ? 'dark' : 'light';
+  if (t && t.chartBgColor) document.documentElement.style.setProperty('--bg', t.chartBgColor);
+}
+async function listBases() {
+  if (!workspace || !workspace.getBaseList) return [];
+  const out = [];
+  try {
+    let cursor;
+    for (let i = 0; i < 20; i++) {
+      const res = await withTimeout(workspace.getBaseList(cursor ? { page: { cursor } } : {}), 4000);
+      out.push(...((res && res.base_list) || []));
+      if (!res || !res.page || !res.page.hasMore) break;
+      cursor = res.page.cursor;
+    }
+  } catch (e) {}
+  return out.filter(b => b && b.token);
+}
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+async function useBase(token) {
+  if (!token) { srcBase = bitable.base; srcToken = ''; }
+  else {
+    // Base ngoài Base App cần được Lark nạp xong trước khi đọc (nhất là ở chế độ xem dashboard)
+    if (workspace.getBitableReady) {
+      let ready = false;
+      for (let i = 0; i < 20 && !ready; i++) {
+        try { ready = await withTimeout(workspace.getBitableReady(token), 5000); } catch (e) { dlog('base.ready.error', String(e && e.message || e)); }
+        if (!ready) await sleep(750);
+      }
+      dlog('base.ready', { token, ready });
+    }
+    let app = null;
+    for (let i = 0; i < 5 && !app; i++) {
+      try { app = await withTimeout(workspace.getBitable(token), 8000); } catch (e) { dlog('base.getBitable.error', String(e && e.message || e)); }
+      if (!app) await sleep(1000);
+    }
+    if (!app || !app.base) throw new Error('Không mở được base nguồn (có thể bạn chưa có quyền xem base này).');
+    srcBase = app.base; srcToken = token;
+  }
+  let tables = [];
+  for (let i = 0; i < (token ? 6 : 1) && !tables.length; i++) {   // chỉ thử lại với base ngoài app
+    try { tables = (await withTimeout(srcBase.getTableMetaList(), 15000)) || []; }
+    catch (e) { dlog('base.tables.error', String(e && e.message || e)); }
+    if (!tables.length) await sleep(1000 + i * 500);
+  }
+  dlog('base.tables', { token, count: tables.length });
+  fillSelect($('selTable'), tables, false);
+  return tables;
+}
+async function applySaved(c) {
+  if ((c.baseToken || '') !== srcToken) { setIf('selBase', c.baseToken || ''); await useBase(c.baseToken || ''); }
+  if ([...$('selTable').options].some(o => o.value === c.tableId)) {
+    $('selTable').value = c.tableId;
+    await loadTable(c.tableId, c);
+    await draw();
+  }
+}
+/* Bản chụp dữ liệu: chỉ các cột dùng để vẽ, dạng chữ — để khối hiển thị được ở chế độ xem
+   kể cả khi Base App không cho đọc trực tiếp base nguồn. */
+function buildSnapshot(cfg, dropAlias) {
+  // Chỉ lưu những người đang hiển thị (đã áp dụng view, ẩn nghỉ việc, bộ lọc) và các cột cần để vẽ
+  const ids = [...new Set([cfg.name, cfg.parent, cfg.code, dropAlias ? '' : cfg.alias, cfg.title, cfg.dept, cfg.team, cfg.level, cfg.deptMgr, cfg.emp].filter(Boolean))];
+  const metas = fieldMetas.filter(f => ids.includes(f.id)).map(f => ({ id: f.id, name: f.name, type: f.type }));
+  const cols = metas.map(m => m.id);
+  const linkSet = new Set(metas.filter(f => f.type === FieldType.SingleLink || f.type === FieldType.DuplexLink).map(f => f.id));
+  const rows = filteredRows(cfg).map(r => [r.recordId, ...cols.map(id => {
+    const v = r.fields[id];
+    if (v === null || v === undefined) return '';
+    return linkSet.has(id) ? linkIds(v) : toText(v);
+  })]);
+  return { v: 2, at: Date.now(), metas, cols, rows };
+}
+function snapshotRecords(sn) {
+  if (sn && sn.v === 2) {
+    return (sn.rows || []).map(row => {
+      const f = {};
+      sn.cols.forEach((id, i) => {
+        const v = row[i + 1];
+        if (Array.isArray(v)) { if (v.length) f[id] = { recordIds: v }; }
+        else if (v !== '' && v !== null && v !== undefined) f[id] = v;
+      });
+      return { recordId: row[0], fields: f };
+    });
+  }
+  return (sn && sn.rows) || [];   // định dạng cũ
+}
+function loadSnapshot(saved) {
+  snapMode = true; currentTable = null;
+  fieldMetas = saved.snapshot.metas || [];
+  for (const id of ['selName', 'selParent']) fillSelect($(id), fieldMetas, false);
+  for (const id of ['selCode', 'selAlias', 'selTitle', 'selDept', 'selTeam', 'selLevel', 'selStatus', 'selFilterField', 'selPhoto', 'selDeptMgr', 'selEmp']) fillSelect($(id), fieldMetas, true);
+  const map = { mode:'selMode', name:'selName', parent:'selParent', code:'selCode', alias:'selAlias', title:'selTitle', dept:'selDept', team:'selTeam',
+    level:'selLevel', status:'selStatus', filterField:'selFilterField', photo:'selPhoto', shape:'selShape', deptUnder:'selDeptUnder',
+    deptMgr:'selDeptMgr', emp:'selEmp', defaultLayout:'selLayout' };
+  for (const [k, id] of Object.entries(map)) setIf(id, saved[k]);
+  for (const [k, id] of [['compact', 'chkCompact'], ['activeOnly', 'chkActive'], ['showOps', 'chkOps'], ['showCode', 'chkCode'], ['showEmpAll', 'chkEmpAll']]) if (saved[k] !== undefined) $(id).checked = saved[k];
+  $('selView').innerHTML = saved.viewId ? `<option value="${esc(saved.viewId)}">${esc(saved.viewName || 'View đã lưu')}</option>` : '<option value="">Tất cả dòng trong bảng</option>';
+  inactiveVals = Array.isArray(saved.inactiveValues) ? new Set(saved.inactiveValues) : null;
+  $('inpTitle').value = saved.blockTitle || ''; applyTitle();
+  restoreBg(saved);
+  showModeFields();
+  records = snapshotRecords(saved.snapshot);
+  recordsById = new Map(records.map(r => [r.recordId, r]));
+  refreshFilterValues(saved.snapshot.v === 2 ? '' : (saved.filterValue || ''));   // bản chụp mới đã lọc sẵn
+  dlog('snapshot.loaded', { rows: records.length, v: saved.snapshot.v || 1 });
+}
+function setSnapNote(at) {
+  let el = $('snapNote');
+  if (!el) { el = document.createElement('span'); el.id = 'snapNote'; el.style.cssText = 'font-size:11px;color:var(--muted);white-space:nowrap'; document.querySelector('.sub .spacer').before(el); }
+  el.textContent = at ? `Dữ liệu cập nhật lúc ${new Date(at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}` : '';
+  el.title = at ? 'Sơ đồ đang hiển thị từ bản lưu trong khối. Muốn cập nhật: sửa khối → Lưu cấu hình.' : '';
+}
+
+/* ---------- Tự cập nhật qua 1 cột "Dữ liệu sơ đồ" ----------
+   Dashboard của Lark chỉ trả dữ liệu đã gom nhóm theo MỘT cột. Ghép mọi thông tin cần vẽ vào một cột công thức
+   (mỗi người một giá trị khác nhau nhờ có Mã NV), khai báo khối gom nhóm theo cột đó → getData() trả về danh sách
+   người, onDataChange báo khi dữ liệu đổi, và quyền xem khối đi theo quyền xem bảng nguồn. */
+const fieldNameOf = (id) => { const f = fieldMetas.find(x => x.id === id); return f ? f.name : ''; };
+function packFormula(cfg) {
+  return PACK_KEYS.map(k => (cfg[k] && fieldNameOf(cfg[k]) ? `[${fieldNameOf(cfg[k])}]` : '""')).join('&"|"&');
+}
+const packNorm = (s) => String(s || '').split('|').map(x => norm(x)).join('|');
+function packExpected(r, cfg) { return PACK_KEYS.map(k => (cfg[k] ? norm(toText(r.fields[cfg[k]])) : '')).join('|'); }
+function fillPackSelect(keep) {
+  const sel = $('selPack');
+  const cands = fieldMetas.filter(f => f.type === FT('Formula', 20) || f.type === FT('Text', 1));
+  sel.innerHTML = '<option value="">— Chưa dùng (khối lưu bản chụp dữ liệu) —</option>' + cands.map(f => `<option value="${esc(f.id)}">${esc(f.name)}</option>`).join('');
+  if (keep) setIf('selPack', keep);
+  else { const g = cands.find(f => /dữ\s*liệu\s*sơ\s*đồ|org\s*chart|sơ\s*đồ\s*tổ\s*chức/i.test(f.name)); if (g) sel.value = g.id; }
+}
+function renderPackInfo() {
+  const el = $('packInfo');
+  if (!dashMode || snapMode || !el) return;
+  const cfg = readConfig();
+  const fx = packFormula(cfg);
+  let status = '';
+  if (cfg.packField) {
+    let ok = 0, total = 0;
+    for (const r of records) {
+      if (!norm(toText(r.fields[cfg.name]))) continue;
+      total++;
+      if (packNorm(toText(r.fields[cfg.packField])) === packNorm(packExpected(r, cfg))) ok++;
+    }
+    status = total && ok === total
+      ? `<div class="ok">✓ Cột hợp lệ: khớp ${ok}/${total} dòng. Khối sẽ tự cập nhật khi dữ liệu thay đổi.</div>`
+      : `<div class="bad">⚠ Mới khớp ${ok}/${total} dòng. Công thức của cột chưa đúng các cột đang chọn — bấm "Tạo / cập nhật cột tự động", hoặc tự dán công thức mẫu dưới vào cột.</div>`;
+  } else {
+    status = '<div>Chọn cột "Dữ liệu sơ đồ" hoặc bấm <b>Tạo cột tự động</b>. Khi dùng cột này: khối <b>tự cập nhật</b> khi dữ liệu nhân sự thay đổi, <b>không lưu bản chụp</b>, và chỉ ai có quyền xem bảng nhân sự mới xem được khối.</div>';
+  }
+  el.innerHTML = `${status}<div style="margin-top:6px">Công thức của cột (theo các cột đang chọn ở trên):</div><code>${esc(fx)}</code>
+    <button class="btn" id="btnCopyPack" type="button">Sao chép công thức</button>`;
+  $('btnCopyPack').onclick = async () => {
+    try { await navigator.clipboard.writeText(fx); toast('Đã sao chép công thức'); }
+    catch (e) { const r = document.createRange(); r.selectNodeContents(el.querySelector('code')); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); toast('Đã bôi đen công thức, nhấn Ctrl+C để sao chép'); }
+  };
+}
+async function makePackColumn() {
+  if (!currentTable) throw new Error('Chưa đọc được bảng nguồn.');
+  const cfg = readConfig();
+  const fx = packFormula(cfg);
+  const cur = cfg.packField && fieldMetas.find(f => f.id === cfg.packField && f.type === FT('Formula', 20));
+  if (cur) {
+    try {
+      const fld = await currentTable.getField(cur.id);
+      await fld.setFormula(fx);
+      dlog('pack.update.ok', { name: cur.name, fx });
+    } catch (e) {
+      dlog('pack.update.error', String(e && e.message || e));
+      throw new Error(`Không sửa được công thức cột "${cur.name}" (cần quyền chỉnh sửa cấu trúc bảng). Hãy tự mở cột đó và dán công thức bên dưới.`);
+    }
+    await reloadRecords(); renderPackInfo();
+    toast(`Đã cập nhật công thức cột "${cur.name}"`, 5000);
+    return;
+  }
+  let name = 'Dữ liệu sơ đồ', i = 2;
+  while (fieldMetas.some(f => f.name === name)) name = `Dữ liệu sơ đồ ${i++}`;
+  try {
+    const fid = await currentTable.addField({ type: FT('Formula', 20), name });
+    const fld = await currentTable.getField(fid);
+    await fld.setFormula(fx);
+    fieldMetas = await currentTable.getFieldMetaList();
+    fillPackSelect(fid);
+    dlog('pack.create.ok', { name, fx });
+  } catch (e) {
+    dlog('pack.create.error', String(e && e.message || e));
+    throw new Error('Không tạo được cột (cần quyền chỉnh sửa cấu trúc bảng nguồn). Hãy tự thêm cột Công thức tên "Dữ liệu sơ đồ" và dán công thức bên dưới.');
+  }
+  await reloadRecords();
+  renderPackInfo();
+  toast(`Đã tạo cột "${name}" trong bảng nguồn`, 5000);
+}
+async function dashFor(token) {
+  if (!token || !workspace || !workspace.getBitable) return dashboard;
+  try { const app = await withTimeout(workspace.getBitable(token), 8000); return (app && app.dashboard) || dashboard; }
+  catch (e) { return dashboard; }
+}
+function parsePacked(data, order) {
+  const out = [];
+  if (!Array.isArray(data)) return out;
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row || !row[0]) continue;
+    const g = row[0];
+    const s2 = String((g.text !== undefined && g.text !== null && g.text !== '') ? g.text : toText(g.value));
+    if (!s2.includes('|')) continue;
+    const parts = s2.split('|');
+    const f = {};
+    order.forEach((k, j) => { const v = norm(parts[j]); if (v) f['p_' + k] = v; });
+    const cnt = Math.max(1, Math.min(50, Number((row[1] || {}).value) || 1));
+    for (let c = 0; c < cnt; c++) out.push({ recordId: `pk${i}_${c}`, fields: f });
+  }
+  return out;
+}
+async function loadPacked(saved) {
+  const data = await withTimeout(packDash.getData(), 15000);
+  const order = saved.packOrder || PACK_KEYS, names = saved.packNames || {};
+  const recs = parsePacked(data, order);
+  dlog('pack.getData', { groups: Array.isArray(data) ? data.length - 1 : null, rows: recs.length });
+  if (!recs.length) throw new Error('getData chưa trả dữ liệu');
+  snapMode = true; packMode = true; packSaved = saved; currentTable = null;
+  fieldMetas = order.map(k => ({ id: 'p_' + k, name: names[k] || k, type: 1 }));
+  for (const id of ['selName', 'selParent']) fillSelect($(id), fieldMetas, false);
+  for (const id of ['selCode', 'selAlias', 'selTitle', 'selDept', 'selTeam', 'selLevel', 'selStatus', 'selFilterField', 'selPhoto', 'selDeptMgr', 'selEmp']) fillSelect($(id), fieldMetas, true);
+  const map = { name: 'selName', parent: 'selParent', code: 'selCode', alias: 'selAlias', title: 'selTitle', dept: 'selDept', team: 'selTeam',
+    status: 'selStatus', filterField: 'selFilterField', deptMgr: 'selDeptMgr', emp: 'selEmp' };
+  for (const [k, id] of Object.entries(map)) $(id).value = saved[k] && order.includes(k) ? 'p_' + k : '';
+  for (const [k, id] of Object.entries({ mode: 'selMode', shape: 'selShape', deptUnder: 'selDeptUnder', defaultLayout: 'selLayout' })) setIf(id, saved[k]);
+  for (const [k, id] of [['compact', 'chkCompact'], ['activeOnly', 'chkActive'], ['showOps', 'chkOps'], ['showCode', 'chkCode'], ['showEmpAll', 'chkEmpAll']]) if (saved[k] !== undefined) $(id).checked = saved[k];
+  inactiveVals = Array.isArray(saved.inactiveValues) ? new Set(saved.inactiveValues) : null;
+  $('inpTitle').value = saved.blockTitle || ''; applyTitle();
+  restoreBg(saved);
+  showModeFields();
+  records = recs;
+  recordsById = new Map(records.map(r => [r.recordId, r]));
+  refreshFilterValues(saved.filterValue || '');
+  setSnapNote(null);
+}
+
+async function saveDashboardConfig() {
+  const cfg = readConfig();
+  if (cfg.packField && !snapMode) {
+    const cond = { tableId: cfg.tableId,
+      dataRange: cfg.viewId ? { type: SourceType.VIEW || 'VIEW', viewId: cfg.viewId, viewName: cfg.viewName } : { type: SourceType.ALL || 'ALL' },
+      groups: [{ fieldId: cfg.packField }], series: 'COUNTA' };
+    if (srcToken) cond.baseToken = srcToken;
+    const packNames = Object.fromEntries(PACK_KEYS.map(k => [k, cfg[k] ? fieldNameOf(cfg[k]) : '']));
+    const payload = { customConfig: { ...cfg, packOrder: PACK_KEYS, packNames, saveMode: 'pack' }, dataConditions: [cond] };
+    try {
+      const d = await dashFor(srcToken);
+      const r = await d.saveConfig(payload);
+      dlog('save.pack.ok', { result: r, cond });
+      if (r !== false) {
+        try { const pv = await withTimeout(d.getPreviewData(cond), 8000); dlog('save.pack.preview', { rows: Array.isArray(pv) ? parsePacked(pv, PACK_KEYS).length : null }); }
+        catch (e) { dlog('save.pack.preview.error', String(e && e.message || e)); }
+        await draw();
+        toast('Đã lưu. Khối sẽ tự cập nhật khi dữ liệu nhân sự thay đổi.', 5000);
+        return;
+      }
+    } catch (e) {
+      dlog('save.pack.error', String(e && e.message || e));
+      toast('Không khai báo được cột tự cập nhật, chuyển sang lưu bản chụp. Chi tiết trong "Chẩn đoán".', 6000);
+    }
+  }
+  let snapshot = null;
+  if (!snapMode && records.length) {
+    snapshot = buildSnapshot(cfg);
+    let size = new Blob([JSON.stringify(snapshot)]).size;
+    if (size > 40000) { snapshot = buildSnapshot(cfg, true); size = new Blob([JSON.stringify(snapshot)]).size; }
+    dlog('save.snapshot', { rows: snapshot.rows.length, size });
+    if (size > 48000) { snapshot = null; dlog('save.snapshot.skip', 'quá lớn'); }
+  } else if (snapMode) {
+    try { const c = await withTimeout(dashboard.getConfig(), 5000); snapshot = c && c.customConfig && c.customConfig.snapshot || null; } catch (e) {}
+  }
+  const trySave = async (label, dataConditions, extra) => {
+    const payload = { customConfig: { ...cfg, ...extra, saveMode: label } };
+    if (dataConditions) payload.dataConditions = dataConditions;   // undefined = để SDK/Lark tự tạo nguồn mặc định
+    try {
+      const r = await dashboard.saveConfig(payload);
+      dlog('save.' + label + '.ok', { result: r, dataConditions: dataConditions || '(mặc định của Lark)', snapshot: !!payload.customConfig.snapshot,
+        size: JSON.stringify(payload).length });
+      return r !== false;
+    } catch (e) { dlog('save.' + label + '.error', String(e && e.message || e)); return false; }
+  };
+  // Không tự khai báo nguồn dữ liệu: khi TẠO khối, SDK dùng bảng đầu tiên của dashboard; khi SỬA khối, giữ nguồn hiện có.
+  let ok = false;
+  if (snapshot) ok = await trySave('default+snapshot', undefined, { snapshot });
+  if (!ok) ok = await trySave('default', undefined, {});
+  if (!ok && dashMode !== 'Create') ok = await trySave('empty', [], snapshot ? { snapshot } : {});
+  if (!ok) {
+    let own = [];
+    try { own = (await withTimeout(bitable.base.getTableMetaList(), 5000)) || []; } catch (e) {}
+    for (const t of own.slice(0, 3)) {
+      ok = await trySave('anchor', [{ tableId: t.id, dataRange: { type: SourceType.ALL }, groups: [], series: 'COUNTA' }], snapshot ? { snapshot } : {});
+      if (ok) break;
+    }
+  }
+  if (!ok) throw new Error('Lark không chấp nhận cấu hình. Bấm "Chẩn đoán" và gửi nội dung cho người hỗ trợ.');
+  if (!snapMode) await draw();
+  toast(snapshot ? 'Đã lưu cấu hình và dữ liệu sơ đồ vào khối. Thoát chế độ chỉnh sửa để kiểm tra.' : 'Đã lưu cấu hình vào khối sơ đồ.', 5000);
+}
+
+async function collectDiagnostics() {
+  const out = { version: APP_VERSION, time: new Date().toISOString(), url: location.href.replace(/token=[^&#]+/g, 'token=…'),
+    dashMode, srcToken, sdk: { dashboard: !!dashboard, workspace: !!workspace, sdkKeys: Object.keys(SDK).filter(k => /^[a-z]/.test(k)) } };
+  const tryGet = async (label, fn) => { try { out[label] = await withTimeout(fn(), 2500); } catch (e) { out[label] = 'LỖI: ' + (e && e.message || e); } };
+  if (dashboard) {
+    await tryGet('dashboard.state', async () => dashboard.state);
+    await tryGet('dashboard.getConfig', () => dashboard.getConfig());
+  }
+  await tryGet('currentBase.tables', async () => (await bitable.base.getTableMetaList()).slice(0, 20).map(t => ({ id: t.id, name: t.name })));
+  if (dashboard && dashboard.getTableDataRange) {
+    const own = Array.isArray(out['currentBase.tables']) ? out['currentBase.tables'].slice(0, 2) : [];
+    out['getTableDataRange'] = {};
+    for (const t of own) { try { out['getTableDataRange'][t.name] = await withTimeout(dashboard.getTableDataRange(t.id), 2500); } catch (e) { out['getTableDataRange'][t.name] = 'LỖI: ' + (e && e.message || e); } }
+  }
+  if (workspace) await tryGet('workspace.bases', async () => ((await workspace.getBaseList({})).base_list || []).map(b => ({ name: b.name, token: b.token })));
+  out.config = readConfig();
+  out.snapMode = snapMode;
+  out.packMode = packMode;
+  if (packMode) out.packRows = records.length;
+  if (out['dashboard.getConfig'] && out['dashboard.getConfig'].customConfig && out['dashboard.getConfig'].customConfig.snapshot) {
+    const sn = out['dashboard.getConfig'].customConfig.snapshot;
+    out['dashboard.getConfig'] = JSON.parse(JSON.stringify(out['dashboard.getConfig']));
+    out['dashboard.getConfig'].customConfig.snapshot = { at: sn.at, rows: (sn.rows || []).length, metas: (sn.metas || []).length };
+  }
+  out.log = diagLog;
+  return out;
+}
+async function showDiagnostics2() {
+  $('mTitle').textContent = 'Thông tin chẩn đoán';
+  $('mText').textContent = 'Đang thu thập…';
+  $('mPreview').style.display = 'block';
+  $('mPreview').innerHTML = '';
+  $('mDownload').style.display = 'none';
+  $('modal').classList.add('show');
+  const info = await collectDiagnostics();
+  const text = JSON.stringify(info, null, 2);
+  $('mText').textContent = `Phiên bản ${APP_VERSION}. Bấm "Sao chép" rồi dán gửi người hỗ trợ (hoặc chụp màn hình).`;
+  $('mPreview').innerHTML = `<pre style="margin:0;padding:10px;font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-all;user-select:text">${esc(text)}</pre>`;
+  const a = $('mDownload');
+  a.style.display = 'inline-flex'; a.textContent = 'Sao chép'; a.removeAttribute('href');
+  a.onclick = async (e) => {
+    e.preventDefault();
+    try { await navigator.clipboard.writeText(text); toast('Đã sao chép thông tin chẩn đoán'); }
+    catch (err) { const r = document.createRange(); r.selectNodeContents($('mPreview').querySelector('pre')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('Đã bôi đen, nhấn Ctrl+C để sao chép'); }
+  };
+}
+$('mClose').addEventListener('click', () => { const a = $('mDownload'); a.textContent = 'Tải xuống'; a.onclick = null; a.style.display = ''; });
+
+/* ============ Khởi động ============ */
+async function init() {
+  const slow = setTimeout(() => {
+    $('stats').textContent = 'Chưa kết nối';
+    $('empty').innerHTML = '<div><b>Không kết nối được với Lark Base</b>Trang này cần được mở bên trong Base: thêm vào Base Extensions (thanh bên) hoặc thêm làm khối trong Dashboard.</div>';
+  }, 9000);
+
+  $('appVer').textContent = APP_VERSION;
+  applyBg();
+  dashMode = await detectDashboard();
+  dlog('init.dashMode', dashMode);
+  if (dashMode) $('empty').innerHTML = '<div><b>Đang tải sơ đồ tổ chức…</b>Đang kết nối với nguồn dữ liệu, vui lòng chờ vài giây.</div>';
+  if (!dashMode) { $('btnDraw').textContent = 'Vẽ sơ đồ'; $('btnDraw').classList.add('primary'); }
+  if (dashMode) {
+    document.body.classList.add('dash');
+    if (dashMode === 'Create' || dashMode === 'Config') document.body.classList.add('dash-config');
+    document.querySelectorAll('.m-dash').forEach(el => el.classList.remove('hide'));
+    const sub = document.querySelector('.sub');
+    sub.appendChild($('btnRefresh'));
+    sub.appendChild($('exportMenu'));
+    await applyTheme();
+    try { dashboard.onThemeChange((e) => applyTheme(e && e.data)); } catch (e) {}
+  }
+
+  // Cấu hình đã lưu: khối dashboard lưu trong khối, thanh bên lưu trong base
+  let saved = null;
+  if (dashMode) {
+    if (dashMode !== 'Create') {
+      try { const c = await withTimeout(dashboard.getConfig(), 10000); dashSaved = c && c.customConfig ? c : null; dlog('load.getConfig', c && { dataConditions: c.dataConditions, tableId: c.customConfig && c.customConfig.tableId, baseToken: c.customConfig && c.customConfig.baseToken, saveMode: c.customConfig && c.customConfig.saveMode, snapshotRows: c.customConfig && c.customConfig.snapshot ? c.customConfig.snapshot.rows.length : 0 }); saved = c && c.customConfig && c.customConfig.tableId ? c.customConfig : null; }
+      catch (e) { dlog('load.getConfig.error', String(e && e.message || e)); }
+    }
+  } else {
+    try { saved = await bitable.bridge.getData(CONFIG_KEY); } catch (e) {}
+  }
+
+  // Nguồn dữ liệu: base hiện tại, hoặc chọn base khác trong Base App
+  const bases = await listBases();
+  if (bases.length) {
+    $('selBase').innerHTML = '<option value="">Nguồn dữ liệu của Base App / base hiện tại</option>' + bases.map(b => `<option value="${esc(b.token)}">${esc(b.name || b.token)}</option>`).join('');
+    $('fieldBase').classList.remove('hide');
+  }
+  clearTimeout(slow);
+  const viewOnly = dashMode === 'View' || dashMode === 'FullScreen';
+
+  // Kết nối trực tiếp tới bảng nguồn; trả về tableId đã nạp được dữ liệu
+  const connectLive = async () => {
+    const want = (saved && saved.baseToken) || '';
+    if (want) {
+      if (![...$('selBase').options].some(o => o.value === want)) $('selBase').insertAdjacentHTML('beforeend', `<option value="${esc(want)}">Base đã lưu</option>`);
+      $('selBase').value = want; $('fieldBase').classList.remove('hide');
+    }
+    let tables = [];
+    try { tables = await useBase(want); } catch (e) { dlog('live.useBase.error', String(e && e.message || e)); if (!viewOnly) toast(e.message, 6000); }
+    if (!tables.length && bases.length && !want && !viewOnly) { $('selBase').value = bases[0].token; tables = await useBase(bases[0].token); }
+    if (!tables.length) throw new Error('Không tìm thấy bảng dữ liệu nào. Hãy chọn nguồn dữ liệu (Base) khác hoặc kiểm tra quyền xem.');
+    let tid = saved && tables.some(t => t.id === saved.tableId) ? saved.tableId : null;
+    if (!tid && !srcToken) { try { tid = (await withTimeout(bitable.base.getActiveTable(), 3000)).id; } catch (e) {} }
+    if (!tid || !tables.some(t => t.id === tid)) tid = tables[0].id;
+    $('selTable').value = tid;
+    await loadTable(tid, saved);
+    snapMode = false;
+    return tid;
+  };
+
+  liveConnect = connectLive;
+  let tableId = null, packed = false;
+  if (viewOnly && saved && saved.packField && saved.packOrder) {
+    try {
+      packDash = await dashFor(saved.baseToken);
+      await loadPacked(saved);
+      packed = true; tableId = saved.tableId;
+      try { packDash.onDataChange(() => setTimeout(() => refresh(true).catch(() => {}), 1500)); } catch (e) {}
+      // Thử đọc trực tiếp ở nền (để có ảnh nhân viên); không được thì giữ dữ liệu tự cập nhật
+      connectLive().then(async (tid) => {
+        if (tid === saved.tableId && records.length) { packMode = false; dlog('live.ok', { rows: records.length }); await draw(); }
+      }).catch(async (e) => {
+        dlog('live.fail', String(e && e.message || e));
+        if (!snapMode) { try { await loadPacked(saved); await draw(); } catch (e2) {} }
+      });
+    } catch (e) { dlog('pack.load.error', String(e && e.message || e)); }
+  }
+  if (packed) { /* đã nạp dữ liệu tự cập nhật */ }
+  else if (viewOnly && saved && saved.snapshot) {
+    // Hiện ngay từ bản chụp, rồi thử đọc trực tiếp ở nền
+    loadSnapshot(saved);
+    tableId = saved.tableId;
+    setSnapNote(saved.snapshot.at);
+    connectLive().then(async (tid) => {
+      if (tid === saved.tableId && records.length) { dlog('live.ok', { rows: records.length }); setSnapNote(null); await draw(); autoSaveSnapshot(false); }
+      else { dlog('live.mismatch', tid); loadSnapshot(saved); }
+    }).catch(e => { dlog('live.fail', String(e && e.message || e)); if (!snapMode) { loadSnapshot(saved); draw(); } });
+  } else {
+    tableId = await connectLive();
+  }
+
+  const safe = (fn) => () => fn().catch(e => toast('Lỗi: ' + e.message, 6000));
+  $('selBase').onchange = safe(async () => {
+    const t = await useBase($('selBase').value);
+    if (t.length) { $('selTable').value = t[0].id; await loadTable(t[0].id, null); }
+    else toast('Base này chưa có bảng nào hoặc bạn chưa có quyền xem.', 5000);
+  });
+  $('selTable').onchange = safe(() => loadTable($('selTable').value, null));
+  $('selMode').onchange = showModeFields;
+  $('selFilterField').onchange = () => refreshFilterValues('');
+  $('selStatus').onchange = () => { inactiveVals = null; renderInactiveBox(); refreshFilterValues($('selFilterValue').value); };
+  $('chkActive').onchange = () => { renderInactiveBox(); refreshFilterValues($('selFilterValue').value); };
+  $('selView').onchange = safe(async () => { await reloadRecords(); refreshFilterValues($('selFilterValue').value); renderInactiveBox(); toast(`Đã lọc theo view: ${filteredRows(readConfig()).length} nhân sự`); });
+  $('btnDraw').onclick = safe(draw);
+  $('btnSave').onclick = safe(saveDashboardConfig);
+  $('btnRefresh').onclick = safe(() => refresh(false));
+  $('btnConfig').onclick = () => $('config').classList.toggle('open');
+  $('btnCloseCfg').onclick = () => $('config').classList.remove('open');
+  $('inpTitle').oninput = applyTitle;
+  $('config').addEventListener('change', (e) => { if (e.target && e.target.id !== 'selPack') renderPackInfo(); });
+  $('selPack').onchange = renderPackInfo;
+  $('btnMakePack').onclick = safe(makePackColumn);
+  document.querySelectorAll('#layoutSeg [data-layout]').forEach(b => b.onclick = () => setLayout(b.dataset.layout));
+  $('selLayout').onchange = () => { layout = $('selLayout').value; layoutTouched = true; if (tree) rebuild(); };
+  $('selDeptFilter').onchange = () => { $('selDeptFilter').classList.toggle('on', !!$('selDeptFilter').value); setDeptFilter($('selDeptFilter').value); };
+  $('selBg').onchange = () => { if ($('selBg').value === 'transparent') $('chkGrid').checked = false; applyBg(); };
+  $('inpBgColor').oninput = applyBg;
+  $('rngBgAlpha').oninput = applyBg;
+  $('chkGrid').onchange = applyBg;
+  $('btnDiag').onclick = () => showDiagnostics2().catch(e => toast('Lỗi chẩn đoán: ' + e.message, 6000));
+
+  if (dashMode) {
+    try { dashboard.onConfigChange((e) => { const c = e && e.data && e.data.customConfig; if (c && c.tableId) applySaved(c).catch(() => {}); }); } catch (e) {}
+    try { dashboard.onDataChange(() => refresh(true).catch(() => {})); } catch (e) {}
+  }
+
+  if (viewOnly) {
+    // Tự cập nhật: mỗi 5 phút, và khi người xem quay lại tab sau hơn 2 phút
+    setInterval(() => { if (!document.hidden) refresh(true).catch(() => {}); }, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastRefreshAt > 2 * 60 * 1000) refresh(true).catch(() => {}); });
+  }
+
+  if (saved && saved.tableId === tableId) await draw();
+  else if (dashMode === 'View' || dashMode === 'FullScreen') {
+    $('empty').innerHTML = '<div><b>Khối sơ đồ chưa được cấu hình</b>Chỉnh sửa khối này trong dashboard để chọn bảng nhân sự.</div>';
+    markRendered();
+  } else {
+    $('config').classList.add('open');
+    $('empty').innerHTML = `<div><b>Kiểm tra các cột rồi bấm “${dashMode ? 'Xem trước' : 'Vẽ sơ đồ'}”</b>Các cột đã được chọn sẵn theo tên cột trong bảng.</div>`;
+    $('stats').textContent = `${records.length} dòng dữ liệu`;
+  }
+}
+init().catch(e => {
+  dlog('init.error', String(e && e.message || e));
+  $('empty').style.pointerEvents = 'auto';
+  $('empty').innerHTML = `<div><b>Lỗi khởi động</b>${esc(e.message)}<div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+    <button class="btn primary" id="btnRetry">Thử lại</button><button class="btn" id="btnDiag2">Chẩn đoán</button></div>
+    <pre style="margin:12px auto 0;max-width:640px;max-height:120px;overflow:auto;text-align:left;font-size:10.5px;color:var(--muted);background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;user-select:text;white-space:pre-wrap">${esc(diagLog.slice(-8).map(l => `${l.t} ${l.step} ${typeof l.info === 'string' ? l.info : JSON.stringify(l.info || '').slice(0, 160)}`).join('\n'))}</pre></div>`;
+  $('btnRetry').onclick = () => location.reload();
+  $('btnDiag2').onclick = () => showDiagnostics2().catch(() => {});
+  markRendered();
+});
+</script>
+</body>
+</html>
