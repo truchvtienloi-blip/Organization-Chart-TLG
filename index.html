@@ -303,28 +303,91 @@
   .card.orphan::before { background:#f0a14a; }
 
   /* ---------- Bảng chi tiết ---------- */
-  #detail { position:absolute; top:10px; right:10px; bottom:10px; width:290px; max-width:calc(100% - 20px); background:var(--card); border:1px solid var(--border);
+  /* Chỉ hiển thị thông tin công việc cơ bản — không có thông tin cá nhân */
+  :root { --hover:rgba(31,35,41,.06);
+    --t-rose:#f43f5e; --t-rose-s:#ffeef1; --t-green:#16a34a; --t-green-s:#e8f8ee; --t-blue:#3b82f6; --t-blue-s:#e8f1ff;
+    --t-amber:#d97706; --t-amber-s:#fff5e1; --t-red:#ef4444; --t-red-s:#ffecec; --t-teal:#0d9488; --t-teal-s:#e2f7f4; --t-violet:#8b5cf6; --t-violet-s:#f1ebff; }
+  :root[data-theme="dark"] { --hover:rgba(255,255,255,.07);
+    --t-rose:#fb7185; --t-rose-s:#3c1c25; --t-green:#4ade80; --t-green-s:#183324; --t-blue:#60a5fa; --t-blue-s:#172840;
+    --t-amber:#fbbf24; --t-amber-s:#3a2e14; --t-red:#f87171; --t-red-s:#3d1d1f; --t-teal:#2dd4bf; --t-teal-s:#123230; --t-violet:#a78bfa; --t-violet-s:#2b2147; }
+  #detail { position:absolute; top:10px; right:10px; bottom:10px; width:360px; max-width:calc(100% - 20px); background:var(--bg); border:1px solid var(--border);
     border-radius:12px; box-shadow:0 10px 30px rgba(31,35,41,.16); display:none; flex-direction:column; z-index:15; overflow:hidden; }
   #detail.show { display:flex; }
   #viewport, #viewport * { -webkit-user-select:none; user-select:none; }
   #detail, #detail * { -webkit-user-select:text; user-select:text; }
   #detail button, #detail .d-x { -webkit-user-select:none; user-select:none; }
-  .d-head { padding:16px 40px 12px 16px; display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--border); position:relative; }
-  .d-head .av { width:46px; height:46px; font-size:15px; }
-  .d-head h3 { margin:0; font-size:15px; line-height:1.3; }
-  .d-head p { margin:2px 0 0; color:var(--muted); font-size:12px; }
-  .d-close { position:absolute; top:10px; right:10px; border:0; background:none; color:var(--faint); cursor:pointer; padding:4px; border-radius:6px; }
-  .d-close:hover { background:var(--bg); color:var(--text); }
+  .d-close { position:absolute; top:10px; right:10px; border:0; background:none; color:var(--faint); cursor:pointer; padding:5px; border-radius:8px; display:grid; }
+  .d-close:hover { background:var(--hover); color:var(--text); }
   .d-close svg { width:16px; height:16px; }
-  .d-kpis { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); }
-  .kpi { background:var(--bg); border-radius:8px; padding:8px 10px; }
-  .kpi b { display:block; font-size:16px; font-variant-numeric:tabular-nums; }
-  .kpi span { font-size:11px; color:var(--muted); }
-  .d-body { padding:6px 16px 16px; overflow:auto; flex:1; }
-  .d-row { padding:8px 0; border-bottom:1px dashed var(--border); }
-  .d-row:last-child { border-bottom:0; }
-  .d-row .k { font-size:11px; color:var(--faint); margin-bottom:2px; }
-  .d-row .v { font-size:12.5px; word-break:break-word; }
+  .hrd { flex:1; overflow:auto; padding-bottom:14px; }
+  .hrd .ic { width:16px; height:16px; flex:none; }
+  .hrd .muted { color:var(--faint); }
+  .hrd .hero { position:relative; text-align:center; padding:26px 18px 14px; background:var(--panel); border-bottom:1px solid var(--border); }
+  .hrd .hero-bg { position:absolute; inset:0 0 auto 0; height:78px; background:linear-gradient(135deg, var(--cs), color-mix(in srgb, var(--c) 28%, var(--panel))); }
+  .hrd .d-close { z-index:2; background:color-mix(in srgb, var(--panel) 70%, transparent); }
+  .hrd .ava { position:relative; width:88px; height:88px; margin:0 auto 10px; border-radius:50%; padding:4px; background:var(--panel);
+    box-shadow:0 6px 20px color-mix(in srgb, var(--c) 30%, transparent); }
+  #detail.rect .hrd .ava { border-radius:14px; width:78px; height:100px; }
+  .hrd .ava .ava-txt, .hrd .ava img { position:absolute; inset:4px; border-radius:inherit; }
+  .hrd .ava .ava-txt { display:grid; place-items:center; background:linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 60%, #fff)); color:#fff; font-size:28px; font-weight:600; letter-spacing:1px; }
+  .hrd .ava .ic-ava svg { width:36px; height:36px; }
+  .hrd .ava img { width:calc(100% - 8px); height:calc(100% - 8px); object-fit:cover; object-position:center top; }
+  .hrd .hero h2 { position:relative; margin:0 0 3px; font-size:17px; font-weight:700; line-height:1.3; }
+  .hrd .hero-sub { margin:0; color:var(--text); }
+  .hrd .hero-dep { margin:2px 0 0; color:var(--muted); font-size:12px; }
+  .hrd .badges { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px; }
+  .hrd .badge { display:inline-block; border-radius:999px; font-size:11.5px; font-weight:500; padding:1px 10px; border:1px solid currentColor; }
+  .hrd .badge.green { color:var(--t-green); background:var(--t-green-s); } .hrd .badge.amber { color:var(--t-amber); background:var(--t-amber-s); } .hrd .badge.red { color:var(--t-red); background:var(--t-red-s); }
+  .hrd .hero-stats { display:grid; margin-top:14px; border-top:1px solid var(--border); padding-top:12px; }
+  .hrd .hero-stats div + div { border-left:1px solid var(--border); }
+  .hrd .hero-stats b { display:block; font-size:17px; font-variant-numeric:tabular-nums; }
+  .hrd .hero-stats span { color:var(--muted); font-size:11.5px; }
+  .hrd .hero-acts { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+  .hrd .hbtn { display:inline-flex; align-items:center; gap:5px; height:28px; padding:0 11px; border-radius:999px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:12px; cursor:pointer; }
+  .hrd .hbtn .ic { width:14px; height:14px; color:var(--muted); }
+  .hrd .hbtn:hover, .hrd .hbtn.on { border-color:var(--c); color:var(--c); } .hrd .hbtn:hover .ic, .hrd .hbtn.on .ic { color:var(--c); }
+  .hrd .hbtn.on { background:var(--cs); }
+  .hrd .dtabs { position:sticky; top:0; z-index:3; display:flex; gap:2px; padding:0 12px; background:var(--panel); border-bottom:1px solid var(--border); }
+  .hrd .dtabs button { border:0; background:none; color:var(--muted); font-weight:500; padding:11px 10px; cursor:pointer; border-bottom:2px solid transparent; }
+  .hrd .dtabs button:hover { color:var(--text); }
+  .hrd .dtabs button.on { color:var(--brand); border-bottom-color:var(--brand); }
+  .hrd .dpane { padding:12px; display:grid; gap:12px; }
+  .hrd .dcard { background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .hrd .dcard-h { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--border); }
+  .hrd .dcard-h h4 { margin:0; font-size:13px; font-weight:600; flex:1; }
+  .hrd .dcard-ic { color:var(--brand); display:grid; }
+  .hrd .dcard-b { padding:12px 14px; }
+  .hrd .info { list-style:none; margin:0; padding:0; display:grid; gap:11px; }
+  .hrd .info li { display:flex; gap:12px; align-items:center; min-width:0; }
+  .hrd .info li > div { min-width:0; }
+  .hrd .info small { color:var(--muted); font-size:11.5px; }
+  .hrd .info p { margin:1px 0 0; font-weight:500; word-break:break-word; }
+  .hrd .tile { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; flex:none; }
+  .hrd .tile .ic { width:16px; height:16px; }
+  .hrd .tile.rose { color:var(--t-rose); background:var(--t-rose-s); } .hrd .tile.green { color:var(--t-green); background:var(--t-green-s); }
+  .hrd .tile.blue { color:var(--t-blue); background:var(--t-blue-s); } .hrd .tile.amber { color:var(--t-amber); background:var(--t-amber-s); }
+  .hrd .tile.teal { color:var(--t-teal); background:var(--t-teal-s); } .hrd .tile.violet { color:var(--t-violet); background:var(--t-violet-s); }
+  .hrd .mini-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(92px, 1fr)); gap:8px; }
+  .hrd .mini-stats > div { background:var(--hover); border-radius:10px; padding:9px 10px; }
+  .hrd .mini-stats small { display:block; color:var(--muted); font-size:11px; }
+  .hrd .mini-stats b { font-size:12.5px; font-weight:600; }
+  .hrd .org-row + .org-row { margin-top:12px; }
+  .hrd .org-row > small { display:block; color:var(--muted); font-size:11.5px; margin-bottom:5px; }
+  .hrd .people { display:flex; flex-wrap:wrap; gap:6px; }
+  .hrd .people.col { flex-direction:column; flex-wrap:nowrap; }
+  .hrd .person { display:inline-flex; align-items:center; gap:9px; padding:4px 12px 4px 4px; border-radius:999px; border:0; background:var(--hover); color:var(--text);
+    cursor:pointer; text-align:left; max-width:100%; min-width:0; }
+  .hrd .people.col .person { border-radius:10px; width:100%; }
+  .hrd .person:hover { box-shadow:0 0 0 1px var(--brand); background:var(--brand-soft); }
+  .hrd .p-ava { position:relative; width:28px; height:28px; border-radius:50%; overflow:hidden; flex:none; background:var(--cs); color:var(--c); font-size:10.5px; font-weight:700; display:grid; place-items:center; }
+  .hrd .p-ava img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center top; }
+  .hrd .p-txt { display:flex; flex-direction:column; line-height:1.3; min-width:0; }
+  .hrd .p-txt b { font-weight:600; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hrd .p-txt small { color:var(--muted); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hrd .plain { font-weight:500; }
+  .hrd .d-empty { padding:24px 8px; text-align:center; color:var(--muted); }
+  .hrd .d-note { display:flex; gap:6px; align-items:center; font-size:11.5px; color:var(--faint); padding:0 2px; }
+  .hrd .d-note .ic { width:13px; height:13px; }
   .link { color:var(--brand); cursor:pointer; font-weight:500; }
   .link:hover { text-decoration:underline; }
   .chips { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
@@ -1730,46 +1793,175 @@ function reveal(n) {
   select(n);
   requestAnimationFrame(() => centerOn(n.key));
 }
+/* ============ Ngăn chi tiết — chỉ thông tin công việc cơ bản ============
+   Không đọc các cột cá nhân (ngày sinh, giới tính, địa chỉ, CCCD, lương, BHXH, tài khoản ngân hàng, gia đình, hồ sơ giấy tờ…).
+   Chỉ lấy đúng những cột trong danh sách dưới đây; cột nào trùng tên với nhóm cá nhân sẽ bị loại. */
+const DI = {
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>',
+  id: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17a3.5 3.5 0 0 1 7 0M15 9h3M15 13h3"/>',
+  pin: '<path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
+  briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0 1 14 0M16 4a3.5 3.5 0 0 1 0 7M22 21a7 7 0 0 0-4-6.3"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  target: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+  branch: '<path d="m7 15 5 5 5-5M7 9l5-5 5 5"/>',
+  filter: '<path d="M3 5h18l-7 8v6l-4-2v-4z"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+};
+const dic = (k) => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${DI[k] || ''}</svg>`;
+let detailTab = 'overview';
+
+/* Cột mang tính cá nhân — không bao giờ hiển thị dù tên có khớp */
+const PERSONAL_RE = /ca nhan|rieng|personal|gmail|sinh|gioi tinh|dia chi|thuong tru|cho o|que quan|cccd|cmnd|can cuoc|ho chieu|luong|ngan hang|so tk|tai khoan ngan|bhxh|bhyt|ma so thue|^mst|vo\/chong|vo chong|nguoi than|khan cap|gia dinh|\(\d+\)|con thu|hon nhan|dan toc|ton giao|suc khoe/;
+function fieldBy(...res) {
+  for (const re of res) { const f = fieldMetas.find(m => { const s = fold(m.name); return re.test(s) && !PERSONAL_RE.test(s); }); if (f) return f; }
+  return null;
+}
+function cellText(r, m) { return m && r ? fmtCell(m, r.fields[m.id]) : ''; }
+function cellDate(r, m) {
+  if (!m || !r) return null;
+  let v = r.fields[m.id];
+  if (Array.isArray(v) && v.length === 1 && typeof v[0] === 'number') v = v[0];
+  if (typeof v === 'number' && v > -2.3e12 && v < 1e14) return new Date(v);
+  const s = toText(v); const x = /(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/.exec(s);
+  if (x) return new Date(+x[3], +x[2] - 1, +x[1]);
+  const y = /(\d{4})-(\d{2})-(\d{2})/.exec(s); return y ? new Date(+y[1], +y[2] - 1, +y[3]) : null;
+}
+const dd = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+function yearsSince(d) { if (!d) return ''; const y = (Date.now() - d) / (365.25 * 864e5); return y < 1 ? `${Math.max(1, Math.round(y * 12))} tháng` : `${y.toFixed(y < 10 ? 1 : 0).replace('.', ',')} năm`; }
+function toneOf(v) { const s = fold(v); return /nghi|thoi viec|cham dut/.test(s) && !/phep|thai san|om/.test(s) ? 'red' : /thu viec|thuc tap|hoc viec|thai san|tam/.test(s) ? 'amber' : 'green'; }
+
+function personChip(p, sub) {
+  if (!p) return '';
+  const [c, cs] = colorOf(p.dept);
+  const url = p.recordId ? photoUrls.get(p.recordId) : '';
+  const ava = `<span class="p-ava" style="--c:${c};--cs:${cs}">${esc(initials(p.name))}${url ? `<img src="${esc(url)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</span>`;
+  const s = sub !== undefined ? sub : [p.code, p.title].filter(Boolean).join(' · ');
+  return `<button class="person" data-goto="${p.key}" title="Xem ${esc(p.name)} trên sơ đồ">${ava}<span class="p-txt"><b>${esc(p.name)}</b>${s ? `<small>${esc(s)}</small>` : ''}</span></button>`;
+}
+const dcard = (title, ic, body) => `<section class="dcard"><header class="dcard-h"><span class="dcard-ic">${dic(ic)}</span><h4>${esc(title)}</h4></header><div class="dcard-b">${body}</div></section>`;
+
+function closeDetail() {
+  $('detail').classList.remove('show'); selectedKey = null;
+  $('tree').querySelectorAll('.card.sel').forEach(el => el.classList.remove('sel'));
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('detail').classList.contains('show') && !$('modal').classList.contains('show')) closeDetail(); });
+
 function showDetail(n) {
   const cfg = readConfig();
+  const isPerson = n.kind === 'person';
   const [c, cs] = n.kind === 'root' ? ['#3370ff', '#e8efff'] : n.kind === 'orphan' ? ['#a65400', '#ffe9cc'] : colorOf(n.dept);
-  const r = n.kind === 'person' && n.recordId && recordsById.get(n.recordId);
+  const r = isPerson && n.recordId ? recordsById.get(n.recordId) : null;
   const people = n.children.filter(x => x.kind === 'person');
-  const mgr = n.parent && n.parent.kind === 'person' ? n.parent : null;
-  const memberChips = n.members ? `<div class="d-row"><div class="k">Nhân sự trong phòng (${n.members.length})</div><div class="chips">${n.members.map(m => `<span class="link" style="cursor:default">${esc(m.name)}</span>`).join('')}</div><div class="v" style="color:var(--muted);font-size:11px;margin-top:6px">Chuyển sang "Cơ cấu nhân sự" để xem chi tiết.</div></div>` : '';
-  let rows = '';
-  rows += memberChips;
-  if (n.orphanOf) rows += `<div class="d-row"><div class="k">⚠️ Quản lý ghi trong bảng</div><div class="v">"${esc(n.orphanOf)}" — không tìm thấy người này trong sơ đồ</div></div>`;
   const structMode = cfg.mode === 'structure';
-  if (structMode && n.kind === 'person' && n.opsRaw) {
-    const om = n.opsId && [...nodeByKey.values()].find(x => x.recordId === n.opsId && x.kind === 'person');
-    rows += `<div class="d-row"><div class="k">Quản lý trực tiếp (duyệt phép)</div><div class="v">${om ? `<span class="link" data-goto="${om.key}">${esc(om.name)}</span>` : esc(n.opsRaw)}</div></div>`;
+  let boss = n.parent; while (boss && (boss.kind === 'group' || boss.kind === 'vacant')) boss = boss.parent;
+  boss = boss && boss.kind === 'person' ? boss : null;
+  const ops = isPerson && n.opsId ? [...nodeByKey.values()].find(x => x.recordId === n.opsId && x.kind === 'person') : null;
+
+  /* --- chỉ các cột công việc --- */
+  const F = r ? {
+    email: fieldBy(/^email cong ty$/, /email (cong ty|cty|lam viec|noi bo)|work ?email|company ?email/, /^e-?mail$/),
+    phone: fieldBy(/^sdt duoc cap$/, /(sdt|dien thoai|so dt|phone).*(cong ty|cty|duoc cap|noi bo|lam viec|work)/, /so may le|^ext/),
+    account: fieldBy(/tai khoan to chuc|tai khoan lark/),
+    place: fieldBy(/noi lam viec|chi nhanh|van phong|work ?place/),
+    start: fieldBy(/ngay vao cong ty/, /ngay vao|ngay bat dau|ngay nhan viec|start date/),
+    tenure: fieldBy(/^tham nien$/, /so nam lv|so nam lam viec/),
+    leave: fieldBy(/^ngay nghi viec$/, /ngay nghi viec/),
+  } : {};
+  const status = r && cfg.status ? norm(toText(r.fields[cfg.status])) : '';
+  const startD = cellDate(r, F.start);
+  const tenure = cellText(r, F.tenure) || (startD && !cellDate(r, F.leave) ? yearsSince(startD) : '');
+  const place = cellText(r, F.place);
+
+  /* --- phần đầu --- */
+  const url = isPerson && n.recordId ? photoUrls.get(n.recordId) : '';
+  const who = n.kind === 'dept' ? (n.headName || '') : (isPerson || n.kind === 'ghost') ? n.name : '';
+  const avaInner = who
+    ? `<span class="ava-txt">${esc(initials(who))}</span>${url ? `<img src="${esc(url)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}`
+    : `<span class="ava-txt ic-ava">${ICON[n.kind] || ICON.dept}</span>`;
+  const title = n.kind === 'dept' ? (n.headName ? `${n.headName}${n.headTitle ? ' · ' + n.headTitle : ''}` : '') : (n.title || n.chip || '');
+  const sub2 = isPerson ? [n.code && `Mã ${n.code}`, n.dept, place].filter(Boolean).join(' · ') : (n.members ? `${n.members.length} nhân sự` : '');
+  const badges = [status && `<span class="badge ${toneOf(status)}">${esc(status)}</span>`,
+    n.emp && fold(n.emp) !== fold(status) && `<span class="badge ${toneOf(n.emp)}">${esc(n.emp)}</span>`,
+    n.kind === 'vacant' && '<span class="badge amber">Vị trí trống</span>',
+    n.kind === 'ghost' && `<span class="badge amber">${esc(n.tagText || 'Ngoài danh sách')}</span>`].filter(Boolean).join(' ');
+  const stats = n.members && !n.children.length
+    ? [[n.members.length, 'Nhân sự trong phòng'], [n.members.filter(m => rankOf(m.title) <= 5).length, 'Cấp quản lý']]
+    : [[n.children.length, isPerson ? 'Cấp dưới trực tiếp' : 'Mục trực thuộc'], [countAll(n), 'Tổng số người bên dưới']];
+  if (tenure) stats.push([tenure, 'Thâm niên']);
+
+  /* --- tab Tổng quan: thông tin công việc --- */
+  let overview = '';
+  if (isPerson) {
+    const tiles = [['briefcase', 'Phòng ban', n.dept, 'blue'], ['users', 'Nhóm', n.team && fold(n.team) !== fold(n.dept) ? n.team : '', 'teal'],
+      ['pin', 'Nơi làm việc', place, 'amber'], ['mail', 'Email công việc', cellText(r, F.email), 'rose'],
+      ['phone', 'Điện thoại công việc', cellText(r, F.phone), 'green'], ['id', 'Tài khoản tổ chức', cellText(r, F.account), 'violet']].filter(x => x[2]);
+    if (tiles.length) overview += dcard('Thông tin công việc', 'briefcase', `<ul class="info">${tiles.map(([ic, l, v, tone]) =>
+      `<li><span class="tile ${tone}">${dic(ic)}</span><div><small>${l}</small><p>${esc(v)}</p></div></li>`).join('')}</ul>`);
+    const mini = [['Mã nhân sự', n.code], ['Chức danh', n.title], ['Cấp bậc', n.level !== null && n.level !== undefined ? String(n.level) : ''],
+      ['Ngày vào', startD ? dd(startD) : ''], ['Thâm niên', tenure]].filter(x => x[1]);
+    if (mini.length) overview += dcard('Vị trí', 'user', `<div class="mini-stats">${mini.map(([l, v]) => `<div><small>${l}</small><b>${esc(v)}</b></div>`).join('')}</div>`);
   }
-  if (n.teamLead) rows += `<div class="d-row"><div class="k">Trưởng nhóm</div><div class="v">${esc(n.teamLead)}</div></div>`;
-  if (mgr) rows += `<div class="d-row"><div class="k">${structMode ? 'Cấp trên trên sơ đồ' : 'Quản lý trực tiếp'}</div><div class="v"><span class="link" data-goto="${mgr.key}">${esc(mgr.name)}</span>${mgr.title ? ` · ${esc(mgr.title)}` : ''}</div></div>`;
-  if (people.length) rows += `<div class="d-row"><div class="k">${n.kind === 'person' ? 'Cấp dưới trực tiếp' : 'Thành viên'}</div><div class="chips">${people.slice(0, 50).map(x => `<span class="link" data-goto="${x.key}">${esc(x.name)}</span>`).join('')}${people.length > 50 ? `<span>+${people.length - 50}</span>` : ''}</div></div>`;
-  if (r) {
-    const skip = new Set([cfg.name, cfg.parent]);
-    rows += fieldMetas.filter(f => !skip.has(f.id)).map(f => {
-      const t = fmtCell(f, r.fields[f.id]);
-      return t ? `<div class="d-row"><div class="k">${esc(f.name)}</div><div class="v">${esc(t)}</div></div>` : '';
-    }).join('');
-  }
-  const avd = avHTML(n);
+
+  /* --- tab Tổ chức --- */
+  let org = '';
+  const mgrRows = [];
+  if (structMode && isPerson && n.opsRaw) mgrRows.push(['Quản lý trực tiếp (duyệt phép)', ops ? personChip(ops) : `<span class="plain">${esc(n.opsRaw)}</span>`]);
+  if (boss && !(ops && ops === boss)) mgrRows.push([structMode ? 'Cấp trên trên sơ đồ' : 'Quản lý trực tiếp', personChip(boss)]);
+  else if (boss && !mgrRows.length) mgrRows.push(['Quản lý trực tiếp', personChip(boss)]);
+  if (n.teamLead) mgrRows.push(['Trưởng nhóm', `<span class="plain">${esc(n.teamLead)}</span>`]);
+  if (n.orphanOf) mgrRows.push(['⚠️ Quản lý ghi trong bảng', `<span class="plain">"${esc(n.orphanOf)}" — không tìm thấy trong sơ đồ</span>`]);
+  if (mgrRows.length) org += dcard('Quản lý', 'users', mgrRows.map(([l, v]) => `<div class="org-row"><small>${l}</small><div class="people">${v}</div></div>`).join(''));
+  if (people.length) org += dcard(`${isPerson ? 'Cấp dưới trực tiếp' : 'Thành viên'} (${people.length})`, 'users',
+    `<div class="people col">${people.slice(0, 60).map(x => personChip(x)).join('')}${people.length > 60 ? `<span class="muted">+${people.length - 60} người</span>` : ''}</div>`);
+  if (n.members && n.members.length) org += dcard(`Nhân sự trong phòng (${n.members.length})`, 'users',
+    `<div class="people col">${n.members.slice(0, 80).map(m => `<button class="person" data-goto-rec="${esc(m.recordId)}"><span class="p-ava" style="--c:${c};--cs:${cs}">${esc(initials(m.name))}</span><span class="p-txt"><b>${esc(m.name)}</b><small>${esc(m.title || '')}</small></span></button>`).join('')}${n.members.length > 80 ? `<span class="muted">+${n.members.length - 80} người</span>` : ''}</div>`);
+  if (!org) org = `<div class="d-empty">Không có quan hệ quản lý nào để hiển thị.</div>`;
+
+  const tabs = [['overview', 'Tổng quan', overview], ['org', 'Tổ chức', org]].filter(t => t[2]);
+  if (!tabs.some(t => t[0] === detailTab)) detailTab = tabs[0][0];
+  const filtOn = n.dept && deptFilter === n.dept;
+  const note = isPerson ? `<p class="d-note">${dic('lock')}Chỉ hiển thị thông tin công việc, thông tin cá nhân được ẩn.</p>` : '';
   $('detail').innerHTML = `
-    <div class="d-head" style="--c:${c};--cs:${cs}">
-      <div class="av${avd.cls}">${avd.html}</div>
-      <div><h3>${esc(n.name)}</h3><p>${esc(n.title || n.chip || '')}</p></div>
-      <button class="d-close" id="dClose" title="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-    </div>
-    <div class="d-kpis">
-      <div class="kpi"><b>${n.children.length}</b><span>${n.kind === 'person' ? 'Cấp dưới trực tiếp' : 'Mục trực thuộc'}</span></div>
-      <div class="kpi"><b>${countAll(n)}</b><span>Tổng số người bên dưới</span></div>
-    </div>
-    <div class="d-body">${rows || '<div class="d-row"><div class="v" style="color:var(--muted)">Không có thêm thông tin.</div></div>'}</div>`;
-  $('detail').classList.add('show');
-  $('dClose').onclick = () => { $('detail').classList.remove('show'); selectedKey = null; $('tree').querySelectorAll('.card.sel').forEach(el => el.classList.remove('sel')); };
-  $('detail').querySelectorAll('[data-goto]').forEach(el => el.onclick = () => { const t = nodeByKey.get(el.dataset.goto); if (t) reveal(t); });
+    <div class="hrd">
+      <section class="hero" style="--c:${c};--cs:${cs}">
+        <div class="hero-bg"></div>
+        <button class="d-close" id="dClose" title="Đóng (Esc)">${dic('x')}</button>
+        <div class="ava">${avaInner}</div>
+        <h2>${esc(n.name)}</h2>
+        ${title ? `<p class="hero-sub">${esc(title)}</p>` : ''}
+        ${sub2 ? `<p class="hero-dep">${esc(sub2)}</p>` : ''}
+        ${badges ? `<div class="badges">${badges}</div>` : ''}
+        <div class="hero-stats" style="grid-template-columns:repeat(${stats.length},1fr)">${stats.map(([v, l]) => `<div><b>${esc(v)}</b><span>${l}</span></div>`).join('')}</div>
+        <div class="hero-acts">
+          <button class="hbtn" id="dLocate" title="Đưa khối này vào giữa màn hình">${dic('target')}Định vị</button>
+          ${n.children.length ? `<button class="hbtn" id="dBranch" title="Mở toàn bộ cấp dưới">${dic('branch')}Mở nhánh</button>` : ''}
+          ${n.dept && n.kind !== 'root' ? `<button class="hbtn${filtOn ? ' on' : ''}" id="dDept" title="${filtOn ? 'Bỏ lọc, đưa sơ đồ về mặc định' : 'Chỉ hiện phòng ban này'}">${dic(filtOn ? 'x' : 'filter')}${filtOn ? 'Bỏ lọc' : 'Lọc phòng'}</button>` : ''}
+        </div>
+      </section>
+      ${tabs.length > 1 ? `<nav class="dtabs">${tabs.map(([k, l]) => `<button data-dtab="${k}" class="${k === detailTab ? 'on' : ''}">${l}</button>`).join('')}</nav>` : ''}
+      <div class="dpane">${tabs.find(t => t[0] === detailTab)[2]}${note}</div>
+    </div>`;
+  const D = $('detail');
+  D.classList.add('show');
+  $('dClose').onclick = closeDetail;
+  $('dLocate').onclick = () => centerOn(n.key);
+  if ($('dBranch')) $('dBranch').onclick = () => { setAll(n, false); render(n.key); showDetail(n); requestAnimationFrame(() => centerOn(n.key)); };
+  if ($('dDept')) $('dDept').onclick = () => {
+    const off = deptFilter === n.dept;
+    setDeptFilter(off ? '' : n.dept);
+    showDetail(n);
+    requestAnimationFrame(() => { if (off) { fitReadable(); centerOn(n.key); } else fit(); });
+  };
+  const sc = D.querySelector('.hrd');
+  D.querySelectorAll('[data-dtab]').forEach(b => b.onclick = () => { detailTab = b.dataset.dtab; const st = sc.scrollTop; showDetail(n); const s2 = D.querySelector('.hrd'); s2.scrollTop = Math.min(st, D.querySelector('.hero').offsetHeight); });
+  D.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => { const t = nodeByKey.get(el.dataset.goto); if (t) reveal(t); });
+  D.querySelectorAll('[data-goto-rec]').forEach(el => el.onclick = () => {
+    if (layout === 'org' && readConfig().mode === 'structure') setLayout('staff');
+    const t = [...nodeByKey.values()].find(x => x.kind === 'person' && x.recordId === el.dataset.gotoRec); if (t) reveal(t);
+  });
 }
 
 /* ============ Tìm kiếm ============ */
