@@ -1733,6 +1733,8 @@ function applyDeptFilter() {
 }
 function setDeptFilter(v) {
   deptFilter = v || '';
+  const sel = $('selDeptFilter');
+  if (sel) { sel.value = deptFilter; sel.classList.toggle('on', !!deptFilter); }
   applyDeptFilter();
   firstRender = true;
   render();
@@ -1926,7 +1928,23 @@ function cellDate(r, m) {
   const y = /(\d{4})[\/-](\d{2})[\/-](\d{2})/.exec(s); return y ? new Date(+y[1], +y[2] - 1, +y[3]) : null;
 }
 const dd = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-function yearsSince(d) { if (!d) return ''; const y = (Date.now() - d) / (365.25 * 864e5); return y < 1 ? `${Math.max(1, Math.round(y * 12))} tháng` : `${y.toFixed(y < 10 ? 1 : 0).replace('.', ',')} năm`; }
+function yearsSince(d) {
+  if (!d) return '';
+  const now = new Date();
+  let y = now.getFullYear() - d.getFullYear(), m = now.getMonth() - d.getMonth(), day = now.getDate() - d.getDate();
+  if (day < 0) { m--; day += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+  if (m < 0) { y--; m += 12; }
+  if (y < 0) return '';
+  return [[y, 'năm'], [m, 'tháng'], [day, 'ngày']].filter(([v]) => v > 0).map(([v, u]) => `${v} ${u}`).join(' ') || '1 ngày';
+}
+/* Thâm niên lấy từ cột trong bảng (vd "0 năm 6 tháng 0 ngày") → bỏ các phần bằng 0 → "6 tháng" */
+const TENURE_RE = /tham nien|so nam lv|so nam lam viec/;
+function cleanTenure(v) {
+  const s = String(v || '').trim();
+  if (!/\d\s*(năm|tháng|ngày)/i.test(s)) return s;
+  const out = s.replace(/(^|[\s,;-])0+(?:[.,]0+)?\s*(năm|tháng|ngày)\b/gi, ' ').replace(/\s*([,;])(?:\s*[,;])+/g, '$1').replace(/\s{2,}/g, ' ').replace(/^[\s,;-]+|[\s,;-]+$/g, '');
+  return out || '0 ngày';
+}
 function toneOf(v) { const s = fold(v); return /nghi|thoi viec|cham dut/.test(s) && !/phep|thai san|om/.test(s) ? 'red' : /thu viec|thuc tap|hoc viec|thai san|tam/.test(s) ? 'amber' : 'green'; }
 
 /* Nhóm thông tin (theo bản mẫu, đã bỏ các nhóm cá nhân) */
@@ -2064,13 +2082,20 @@ function profileTab(r, metas) {
   return `<div class="grp-note">${rows.length} thông tin công việc</div>` + order.map(g => { const { ic, list } = groups.get(g);
     return `<details class="dcard dgroup" data-grp="${esc(g)}"${closedGroups.has(g) ? '' : ' open'}>
       <summary class="dcard-h"><span class="dcard-ic">${dic(ic)}</span><h4>${esc(g)}</h4><span class="grp-n">${list.length}</span></summary>
-      <div class="dcard-b"><dl class="kv">${list.map(([m, v]) => `<div class="kv-row"><dt>${esc(m.name)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></div>
+      <div class="dcard-b"><dl class="kv">${list.map(([m, v]) => `<div class="kv-row"><dt>${esc(m.name)}</dt><dd>${esc(TENURE_RE.test(fold(m.name)) ? cleanTenure(v) : v)}</dd></div>`).join('')}</dl></div>
     </details>`; }).join('');
 }
 
+let detailFilter = '';   // phòng ban đang lọc do bấm "Lọc phòng" trong ngăn chi tiết
 function closeDetail() {
+  const key = selectedKey;
   $('detail').classList.remove('show'); selectedKey = null;
   $('tree').querySelectorAll('.card.sel').forEach(el => el.classList.remove('sel'));
+  if (detailFilter && deptFilter === detailFilter) {
+    setDeptFilter('');
+    requestAnimationFrame(() => { fitReadable(); if (key && nodeByKey.has(key)) centerOn(key); });
+  }
+  detailFilter = '';
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('detail').classList.contains('show') && !$('modal').classList.contains('show')) closeDetail(); });
 
@@ -2100,7 +2125,7 @@ function showDetail(n) {
   } : {};
   const status = r && cfg.status ? norm(toText(r.fields[cfg.status])) : '';
   const startD = cellDate(r, F.start);
-  const tenure = cellText(r, F.tenure) || (startD && !cellDate(r, F.leave) ? yearsSince(startD) : '');
+  const tenure = cleanTenure(cellText(r, F.tenure)) || (startD && !cellDate(r, F.leave) ? yearsSince(startD) : '');
   const place = cellText(r, F.place);
 
   /* --- phần đầu --- */
@@ -2183,6 +2208,7 @@ function showDetail(n) {
   if ($('dDept')) $('dDept').onclick = () => {
     const off = deptFilter === n.dept;
     setDeptFilter(off ? '' : n.dept);
+    detailFilter = off ? '' : n.dept;
     showDetail(n);
     requestAnimationFrame(() => { if (off) { fitReadable(); centerOn(n.key); } else fit(); });
   };
