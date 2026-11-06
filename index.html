@@ -243,10 +243,56 @@
   .card.dept.vh .nm { color:var(--muted); font-style:italic; font-weight:500; }
   .pack-box { padding:10px; border:1px solid var(--brand); border-radius:8px; background:var(--brand-soft); color:var(--text); }
   .pack-info { font-size:11.5px; line-height:1.5; color:var(--muted); margin-top:6px; font-weight:400; }
-  .pack-info code { display:block; margin:4px 0 6px; padding:6px 8px; background:var(--card); border:1px solid var(--border); border-radius:6px; font-size:11px; color:var(--text); word-break:break-all; user-select:text; }
+  .pack-info code { display:block; margin:4px 0 6px; padding:6px 8px; background:var(--card); border:1px solid var(--border); border-radius:6px; font-size:11px; color:var(--text); word-break:break-all; overflow-wrap:anywhere; white-space:pre-wrap; user-select:text; }
   .pack-info .ok { color:#00875a; font-weight:600; } .pack-info .bad { color:#b42318; font-weight:600; }
   .slot-list { display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:4px; }
   .slot-list .check { font-size:12px; }
+  /* Các mục cấu hình */
+  #config { counter-reset:sec; overflow-x:hidden; }
+  .cfg-title span { display:block; font-weight:400; color:var(--muted); font-size:11.5px; margin-top:2px; }
+  .cfg-sec { border:1px solid var(--border); border-radius:10px; background:var(--card); margin-bottom:10px; }
+  .cfg-sec:not(.hide) { counter-increment:sec; }
+  .cfg-sec > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px; padding:10px 12px; font-size:12.5px; font-weight:600; color:var(--text); user-select:none; }
+  .cfg-sec > summary::-webkit-details-marker { display:none; }
+  .cfg-sec > summary::after { content:''; margin-left:auto; width:7px; height:7px; border-right:1.5px solid var(--faint); border-bottom:1.5px solid var(--faint); transform:rotate(-45deg); transition:transform .15s; }
+  .cfg-sec[open] > summary::after { transform:rotate(45deg); }
+  .cfg-sec[open] > summary { border-bottom:1px solid var(--border); }
+  .cfg-sec > :not(summary) { margin-left:12px; margin-right:12px; }
+  .cfg-sec > :last-child { margin-bottom:12px; }
+  .cfg-sec > .grid { margin-top:12px; }
+  .cfg-n { width:20px; height:20px; border-radius:50%; background:var(--brand-soft); color:var(--brand); font-size:11px; display:grid; place-items:center; flex:none; }
+  .cfg-n::before { content:counter(sec); }
+  .cfg-badge { font-size:11px; font-weight:500; color:var(--muted); background:var(--bg); border-radius:999px; padding:1px 8px; }
+  .cfg-badge.warn { color:#b42318; background:#fdeaea; }
+  .cfg-sec .pack-box { margin-top:12px; }
+  .pack-lead { font-size:11.5px; color:var(--muted); line-height:1.5; margin-bottom:8px; font-weight:400; }
+  /* Cột gói chưa cập nhật → làm nổi bật */
+  .cfg-sec.need-update { border-color:#f04438; box-shadow:0 0 0 3px rgba(240,68,56,.14); }
+  .cfg-sec.need-update .pack-box { border-color:#f04438; background:#fff4f3; }
+  .cfg-sec.need-update #btnMakePack { background:#d92d20; border-color:#d92d20; color:#fff; animation:packPulse 1.6s ease-in-out 3; }
+  @keyframes packPulse { 50% { box-shadow:0 0 0 5px rgba(217,45,32,.22); } }
+  @media (prefers-reduced-motion: reduce) { .cfg-sec.need-update #btnMakePack { animation:none; } }
+  :root[data-theme="dark"] .cfg-sec.need-update .pack-box { background:#3d1d1f; }
+  /* Chọn thông tin hiển thị khi xem chi tiết */
+  .detail-box { margin-top:10px; font-size:12px; }
+  .db-acts { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  .db-acts .btn { height:26px; padding:0 10px; font-size:11.5px; }
+  .db-acts input[type=search] { flex:1; min-width:120px; height:26px; border:1px solid var(--border); border-radius:7px; padding:0 8px; background:var(--card); color:var(--text); font:inherit; font-size:12px; outline:none; }
+  .db-acts input[type=search]:focus { border-color:var(--brand); }
+  .db-grp + .db-grp { margin-top:10px; }
+  .db-grp-h { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--muted); margin-bottom:6px; }
+  .db-grp-h button { margin-left:auto; border:0; background:none; color:var(--brand); font-size:11px; cursor:pointer; padding:0; }
+  .db-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .db-list label { display:inline-flex; align-items:center; gap:5px; font-size:12px; padding:3px 10px 3px 7px; border:1px solid var(--border); border-radius:999px; background:var(--card); cursor:pointer; color:var(--text); }
+  .db-list label.on { border-color:var(--brand); background:var(--brand-soft); color:var(--brand); }
+  .db-list label.miss { border-color:#f04438; border-style:dashed; }
+  .db-list input { margin:0; accent-color:var(--brand); }
+  .db-note { margin-top:10px; font-size:11px; color:var(--faint); line-height:1.5; display:flex; gap:6px; }
+  .db-warn { margin-bottom:10px; padding:8px 10px; border-radius:8px; background:#fdeaea; color:#b42318; font-size:11.5px; line-height:1.5; display:flex; flex-wrap:wrap; gap:6px 8px; align-items:flex-start; }
+  .db-warn > .ic { width:15px; height:15px; margin-top:2px; }
+  .db-warn > span { flex:1 1 calc(100% - 30px); min-width:0; }
+  .db-warn .btn { margin-left:23px; flex:none; height:26px; padding:0 10px; font-size:11.5px; background:#d92d20; border-color:#d92d20; color:#fff; }
+  :root[data-theme="dark"] .db-warn, :root[data-theme="dark"] .cfg-badge.warn { background:#3d1d1f; color:#f87171; }
   .seg .btn.on { background:var(--brand-soft); color:var(--brand); border-color:var(--brand); z-index:1; }
   #layoutSeg { background:var(--card2, #f2f3f5); border:1px solid var(--border); border-radius:10px; padding:3px; gap:3px; }
   #layoutSeg .btn { font-weight:600; border:0; border-radius:7px !important; margin:0; background:transparent; color:var(--muted); padding:5px 12px; gap:6px; }
@@ -304,14 +350,16 @@
 
   /* ---------- Bảng chi tiết ---------- */
   /* Chỉ hiển thị thông tin công việc cơ bản — không có thông tin cá nhân */
-  :root { --hover:rgba(31,35,41,.06);
+  /* --d-bg riêng cho ngăn chi tiết: dashboard Lark ghi đè --bg bằng màu nền khối (thường trong suốt) */
+  :root { --hover:rgba(31,35,41,.06); --d-bg:#f5f6f8;
     --t-rose:#f43f5e; --t-rose-s:#ffeef1; --t-green:#16a34a; --t-green-s:#e8f8ee; --t-blue:#3b82f6; --t-blue-s:#e8f1ff;
     --t-amber:#d97706; --t-amber-s:#fff5e1; --t-red:#ef4444; --t-red-s:#ffecec; --t-teal:#0d9488; --t-teal-s:#e2f7f4; --t-violet:#8b5cf6; --t-violet-s:#f1ebff; }
-  :root[data-theme="dark"] { --hover:rgba(255,255,255,.07);
+  :root[data-theme="dark"] { --hover:rgba(255,255,255,.07); --d-bg:#141517;
     --t-rose:#fb7185; --t-rose-s:#3c1c25; --t-green:#4ade80; --t-green-s:#183324; --t-blue:#60a5fa; --t-blue-s:#172840;
     --t-amber:#fbbf24; --t-amber-s:#3a2e14; --t-red:#f87171; --t-red-s:#3d1d1f; --t-teal:#2dd4bf; --t-teal-s:#123230; --t-violet:#a78bfa; --t-violet-s:#2b2147; }
-  #detail { position:absolute; top:10px; right:10px; bottom:10px; width:360px; max-width:calc(100% - 20px); background:var(--bg); border:1px solid var(--border);
-    border-radius:12px; box-shadow:0 10px 30px rgba(31,35,41,.16); display:none; flex-direction:column; z-index:15; overflow:hidden; }
+  #detail { position:absolute; top:10px; right:10px; bottom:10px; width:360px; max-width:calc(100% - 20px); background:var(--d-bg); border:1px solid var(--border);
+    border-radius:12px; box-shadow:0 12px 36px rgba(31,35,41,.22); display:none; flex-direction:column; z-index:15; overflow:hidden; isolation:isolate; }
+  :root[data-theme="dark"] #detail { box-shadow:0 12px 36px rgba(0,0,0,.55); }
   #detail.show { display:flex; }
   #viewport, #viewport * { -webkit-user-select:none; user-select:none; }
   #detail, #detail * { -webkit-user-select:text; user-select:text; }
@@ -323,13 +371,13 @@
   .hrd .ic { width:16px; height:16px; flex:none; }
   .hrd .muted { color:var(--faint); }
   .hrd .hero { position:relative; text-align:center; padding:26px 18px 14px; background:var(--panel); border-bottom:1px solid var(--border); }
-  .hrd .hero-bg { position:absolute; inset:0 0 auto 0; height:78px; background:linear-gradient(135deg, var(--cs), color-mix(in srgb, var(--c) 28%, var(--panel))); }
-  .hrd .d-close { z-index:2; background:color-mix(in srgb, var(--panel) 70%, transparent); }
+  .hrd .hero-bg { position:absolute; inset:0 0 auto 0; height:78px; background:var(--cs); background:linear-gradient(135deg, var(--cs), color-mix(in srgb, var(--c) 28%, var(--panel))); }
+  .hrd .d-close { z-index:2; background:var(--panel); background:color-mix(in srgb, var(--panel) 70%, transparent); }
   .hrd .ava { position:relative; width:88px; height:88px; margin:0 auto 10px; border-radius:50%; padding:4px; background:var(--panel);
     box-shadow:0 6px 20px color-mix(in srgb, var(--c) 30%, transparent); }
   #detail.rect .hrd .ava { border-radius:14px; width:78px; height:100px; }
   .hrd .ava .ava-txt, .hrd .ava img { position:absolute; inset:4px; border-radius:inherit; }
-  .hrd .ava .ava-txt { display:grid; place-items:center; background:linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 60%, #fff)); color:#fff; font-size:28px; font-weight:600; letter-spacing:1px; }
+  .hrd .ava .ava-txt { display:grid; place-items:center; background:var(--c); background:linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 60%, #fff)); color:#fff; font-size:28px; font-weight:600; letter-spacing:1px; }
   .hrd .ava .ic-ava svg { width:36px; height:36px; }
   .hrd .ava img { width:calc(100% - 8px); height:calc(100% - 8px); object-fit:cover; object-position:center top; }
   .hrd .hero h2 { position:relative; margin:0 0 3px; font-size:17px; font-weight:700; line-height:1.3; }
@@ -388,6 +436,19 @@
   .hrd .d-empty { padding:24px 8px; text-align:center; color:var(--muted); }
   .hrd .d-note { display:flex; gap:6px; align-items:center; font-size:11.5px; color:var(--faint); padding:0 2px; }
   .hrd .d-note .ic { width:13px; height:13px; }
+  .hrd .kv { margin:0; display:grid; }
+  .hrd .kv-row { display:grid; grid-template-columns:42% 1fr; gap:10px; padding:8px 0; border-top:1px solid var(--border); }
+  .hrd .kv-row:first-child { border-top:0; padding-top:0; }
+  .hrd .kv-row:last-child { padding-bottom:0; }
+  .hrd .kv dt { color:var(--muted); word-break:break-word; }
+  .hrd .kv dd { margin:0; font-weight:500; word-break:break-word; }
+  .hrd .grp-note { font-size:11.5px; color:var(--muted); padding:0 2px; }
+  .hrd details.dgroup > summary { list-style:none; cursor:pointer; user-select:none; }
+  .hrd details.dgroup > summary::-webkit-details-marker { display:none; }
+  .hrd details.dgroup > summary::after { content:''; width:7px; height:7px; border-right:1.5px solid var(--faint); border-bottom:1.5px solid var(--faint); transform:rotate(-45deg); transition:transform .15s; margin-left:2px; }
+  .hrd details.dgroup[open] > summary::after { transform:rotate(45deg); }
+  .hrd details.dgroup:not([open]) > summary { border-bottom:0; }
+  .hrd .grp-n { font-size:11px; font-weight:600; color:var(--muted); background:var(--hover); border-radius:999px; padding:0 7px; }
   .link { color:var(--brand); cursor:pointer; font-weight:500; }
   .link:hover { text-decoration:underline; }
   .chips { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
@@ -470,95 +531,121 @@
   </div>
 
   <div id="config">
-    <p class="cfg-title">Chọn bảng và các cột dữ liệu (đã tự chọn sẵn theo tên cột)</p>
-    <div class="grid">
-      <label class="field full">Cách dựng sơ đồ
-        <select id="selMode">
-          <option value="structure">Theo cơ cấu: Lãnh đạo → Phòng ban → Nhóm (khuyến nghị)</option>
-          <option value="parent">Theo đúng cột "Quản lý trực tiếp"</option>
-          <option value="group">Theo Phòng ban và Chức danh (khi chưa có cột quản lý)</option>
-        </select>
-      </label>
-      <label class="field full">Tiêu đề khối / sơ đồ<input id="inpTitle" type="text" maxlength="80" placeholder="VD: Sơ đồ tổ chức Tiến Lợi Group"></label>
-      <label class="field full hide" id="fieldBase">Nguồn dữ liệu (Base)<select id="selBase"></select></label>
-      <div class="field full m-dash hide pack-box">Tự động cập nhật trên dashboard (khuyến nghị)
+    <p class="cfg-title">Cấu hình sơ đồ <span>Các cột đã được tự chọn sẵn theo tên, chỉ cần kiểm tra lại</span></p>
+
+    <details class="cfg-sec" open>
+      <summary><span class="cfg-n"></span>Nguồn dữ liệu</summary>
+      <div class="grid">
+        <label class="field full hide" id="fieldBase">Nguồn dữ liệu (Base)<select id="selBase"></select></label>
+        <label class="field">Bảng dữ liệu<select id="selTable"></select></label>
+        <label class="field">Lấy dữ liệu theo view<select id="selView"><option value="">Tất cả dòng trong bảng</option></select></label>
+        <label class="field">Cột tình trạng làm việc<select id="selStatus"></select></label>
+        <label class="field">Lọc theo cột<select id="selFilterField"></select></label>
+        <label class="field">Giá trị lọc<select id="selFilterValue"><option value="">Tất cả</option></select></label>
+      </div>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="chkActive" checked> Ẩn người đã nghỉ việc</label>
+      <div id="inactiveBox" class="inactive-box hide"></div>
+    </details>
+
+    <details class="cfg-sec" open>
+      <summary><span class="cfg-n"></span>Cột dựng sơ đồ</summary>
+      <div class="grid">
+        <label class="field full">Cách dựng sơ đồ
+          <select id="selMode">
+            <option value="structure">Theo cơ cấu: Lãnh đạo → Phòng ban → Nhóm (khuyến nghị)</option>
+            <option value="parent">Theo đúng cột "Quản lý trực tiếp"</option>
+            <option value="group">Theo Phòng ban và Chức danh (khi chưa có cột quản lý)</option>
+          </select>
+        </label>
+        <label class="field">Họ và tên<select id="selName"></select></label>
+        <label class="field m-parent">Quản lý trực tiếp<select id="selParent"></select></label>
+        <label class="field m-struct">Lãnh đạo phụ trách phòng (Quản lý bộ phận)<select id="selDeptMgr"></select></label>
+        <label class="field m-parent">Mã NV<select id="selCode"></select></label>
+        <label class="field m-parent">Tên khác để khớp quản lý<select id="selAlias"></select></label>
+        <label class="field">Chức danh<select id="selTitle"></select></label>
+        <label class="field">Phòng ban<select id="selDept"></select></label>
+        <label class="field">Nhóm / Tổ<select id="selTeam"></select></label>
+        <label class="field">Cấp bậc (số, để sắp xếp)<select id="selLevel"></select></label>
+        <label class="field">Trạng thái hợp đồng (Chính thức / Thử việc / Thực tập)<select id="selEmp"></select></label>
+        <label class="field">Ảnh nhân viên<select id="selPhoto"></select></label>
+      </div>
+    </details>
+
+    <details class="cfg-sec" open>
+      <summary><span class="cfg-n"></span>Thông tin khi xem chi tiết <span class="cfg-badge" id="detailCount"></span></summary>
+      <div id="detailBox" class="detail-box"></div>
+    </details>
+
+    <details class="cfg-sec m-dash hide" open id="packSec">
+      <summary><span class="cfg-n"></span>Tự cập nhật trên dashboard <span class="cfg-badge warn hide" id="packBadge">Cần cập nhật</span></summary>
+      <div class="pack-box">
+        <div class="pack-lead">Gói các cột cần hiển thị vào một cột công thức để khối tự cập nhật khi dữ liệu thay đổi (khuyến nghị).</div>
         <div class="bg-row">
           <select id="selPack" style="flex:1"><option value="">— Chưa dùng (khối lưu bản chụp dữ liệu) —</option></select>
-          <button class="btn" id="btnMakePack" type="button">Tạo / cập nhật cột tự động</button>
+          <button class="btn" id="btnMakePack" type="button">Tạo / cập nhật cột</button>
         </div>
         <div class="pack-info" id="packInfo"></div>
       </div>
-      <label class="field">Bảng dữ liệu<select id="selTable"></select></label>
-      <label class="field">Họ và tên<select id="selName"></select></label>
-      <label class="field m-parent">Quản lý trực tiếp<select id="selParent"></select></label>
-      <label class="field m-struct">Lãnh đạo phụ trách phòng (Quản lý bộ phận)<select id="selDeptMgr"></select></label>
-      <label class="field m-struct">Chế độ xem mặc định<select id="selLayout">
-        <option value="staff">Sơ đồ cơ cấu nhân sự (chi tiết)</option>
-        <option value="org">Sơ đồ cơ cấu tổ chức (phòng ban)</option>
-      </select></label>
-      <label class="field m-struct">Các phòng ban đặt dưới<select id="selDeptUnder">
-        <option value="lowest">Lãnh đạo cấp thấp nhất (vd Phó GĐ)</option>
-        <option value="manager">Lãnh đạo là quản lý trực tiếp của trưởng phòng</option>
-      </select></label>
-      <label class="field m-parent">Mã NV<select id="selCode"></select></label>
-      <label class="field m-parent">Tên khác để khớp quản lý<select id="selAlias"></select></label>
-      <label class="field">Chức danh<select id="selTitle"></select></label>
-      <label class="field">Phòng ban<select id="selDept"></select></label>
-      <label class="field">Nhóm / Tổ<select id="selTeam"></select></label>
-      <label class="field">Cấp bậc (số, để sắp xếp)<select id="selLevel"></select></label>
-      <label class="field">Ảnh nhân viên<select id="selPhoto"></select></label>
-      <label class="field">Trạng thái hợp đồng (Chính thức / Thử việc / Thực tập)<select id="selEmp"></select></label>
-      <div class="field full">Nền sơ đồ
-        <div class="bg-row">
-          <select id="selBg" style="flex:1">
-            <option value="auto">Theo giao diện Lark (mặc định)</option>
-            <option value="transparent">Trong suốt (nhìn thấy nền dashboard)</option>
-            <option value="#ffffff">Trắng</option>
-            <option value="#f3f5f9">Xám nhạt</option>
-            <option value="#e8efff">Xanh nhạt</option>
-            <option value="#1f4fd1">Xanh dương</option>
-            <option value="#0f2a4a">Xanh đậm</option>
-            <option value="#14532d">Xanh lá đậm</option>
-            <option value="#111315">Đen</option>
-            <option value="custom">Tự chọn màu…</option>
-          </select>
-          <input type="color" id="inpBgColor" value="#1f4fd1" title="Chọn màu nền" class="hide">
-        </div>
-        <div class="bg-row" id="bgAlphaRow">
-          <span style="font-size:11px;white-space:nowrap">Độ đậm nền</span>
-          <input type="range" id="rngBgAlpha" min="0" max="100" step="5" value="100">
-          <output id="outBgAlpha">100%</output>
-        </div>
-      </div>
-      <label class="field">Kiểu ảnh<select id="selShape">
-        <option value="circle">Ảnh tròn</option>
-        <option value="rect">Ảnh thẻ chữ nhật (3x4)</option>
-      </select></label>
-      <label class="field">Lấy dữ liệu theo view<select id="selView"><option value="">Tất cả dòng trong bảng</option></select></label>
-      <label class="field">Cột tình trạng làm việc<select id="selStatus"></select></label>
-      <label class="field">Lọc theo cột<select id="selFilterField"></select></label>
-      <label class="field">Giá trị lọc<select id="selFilterValue"><option value="">Tất cả</option></select></label>
-    </div>
-    <div class="checks">
-      <label class="check"><input type="checkbox" id="chkActive" checked> Ẩn người đã nghỉ việc</label>
-      <label class="check"><input type="checkbox" id="chkCode" checked> Hiện mã nhân viên trên thẻ</label>
-      <label class="check"><input type="checkbox" id="chkEmpAll"> Hiện cả nhãn "Chính thức" (mặc định chỉ hiện Thử việc / Thực tập…)</label>
-      <label class="check"><input type="checkbox" id="chkGrid" checked> Hiện lưới chấm trên nền</label>
-      <div class="field full m-struct slots">Luôn hiện ô vị trí (kể cả khi chưa có người)
-        <div class="slot-list">
-          <label class="check"><input type="checkbox" data-slot="lead" checked> Chủ tịch / Giám đốc / Phó GĐ</label>
-          <label class="check"><input type="checkbox" data-slot="tp" checked> Trưởng phòng</label>
-          <label class="check"><input type="checkbox" data-slot="pp" checked> Phó phòng</label>
-          <label class="check"><input type="checkbox" data-slot="team" checked> Tổ trưởng / Quản lý / Trưởng nhóm</label>
-          <label class="check"><input type="checkbox" data-slot="cv"> Chuyên viên</label>
-          <label class="check"><input type="checkbox" data-slot="nv"> Nhân viên</label>
-          <label class="check"><input type="checkbox" data-slot="tt"> Thực tập</label>
+    </details>
+
+    <details class="cfg-sec" open>
+      <summary><span class="cfg-n"></span>Hiển thị</summary>
+      <div class="grid">
+        <label class="field full">Tiêu đề khối / sơ đồ<input id="inpTitle" type="text" maxlength="80" placeholder="VD: Sơ đồ tổ chức Tiến Lợi Group"></label>
+        <label class="field m-struct">Chế độ xem mặc định<select id="selLayout">
+          <option value="staff">Sơ đồ cơ cấu nhân sự (chi tiết)</option>
+          <option value="org">Sơ đồ cơ cấu tổ chức (phòng ban)</option>
+        </select></label>
+        <label class="field m-struct">Các phòng ban đặt dưới<select id="selDeptUnder">
+          <option value="lowest">Lãnh đạo cấp thấp nhất (vd Phó GĐ)</option>
+          <option value="manager">Lãnh đạo là quản lý trực tiếp của trưởng phòng</option>
+        </select></label>
+        <label class="field">Kiểu ảnh<select id="selShape">
+          <option value="circle">Ảnh tròn</option>
+          <option value="rect">Ảnh thẻ chữ nhật (3x4)</option>
+        </select></label>
+        <div class="field full">Nền sơ đồ
+          <div class="bg-row">
+            <select id="selBg" style="flex:1">
+              <option value="auto">Theo giao diện Lark (mặc định)</option>
+              <option value="transparent">Trong suốt (nhìn thấy nền dashboard)</option>
+              <option value="#ffffff">Trắng</option>
+              <option value="#f3f5f9">Xám nhạt</option>
+              <option value="#e8efff">Xanh nhạt</option>
+              <option value="#1f4fd1">Xanh dương</option>
+              <option value="#0f2a4a">Xanh đậm</option>
+              <option value="#14532d">Xanh lá đậm</option>
+              <option value="#111315">Đen</option>
+              <option value="custom">Tự chọn màu…</option>
+            </select>
+            <input type="color" id="inpBgColor" value="#1f4fd1" title="Chọn màu nền" class="hide">
+          </div>
+          <div class="bg-row" id="bgAlphaRow">
+            <span style="font-size:11px;white-space:nowrap">Độ đậm nền</span>
+            <input type="range" id="rngBgAlpha" min="0" max="100" step="5" value="100">
+            <output id="outBgAlpha">100%</output>
+          </div>
         </div>
       </div>
-      <label class="check m-struct"><input type="checkbox" id="chkOps" checked> Hiện nhãn "QL" khi người duyệt phép khác cấp trên trên sơ đồ</label>
-      <label class="check"><input type="checkbox" id="chkCompact" checked> Xếp nhân viên cấp cuối thành cột dọc</label>
-    </div>
-    <div id="inactiveBox" class="inactive-box hide"></div>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="chkCode" checked> Hiện mã nhân viên trên thẻ</label>
+        <label class="check"><input type="checkbox" id="chkEmpAll"> Hiện cả nhãn "Chính thức" (mặc định chỉ hiện Thử việc / Thực tập…)</label>
+        <label class="check"><input type="checkbox" id="chkGrid" checked> Hiện lưới chấm trên nền</label>
+        <label class="check m-struct"><input type="checkbox" id="chkOps" checked> Hiện nhãn "QL" khi người duyệt phép khác cấp trên trên sơ đồ</label>
+        <label class="check"><input type="checkbox" id="chkCompact" checked> Xếp nhân viên cấp cuối thành cột dọc</label>
+        <div class="field full m-struct slots">Luôn hiện ô vị trí (kể cả khi chưa có người)
+          <div class="slot-list">
+            <label class="check"><input type="checkbox" data-slot="lead" checked> Chủ tịch / Giám đốc / Phó GĐ</label>
+            <label class="check"><input type="checkbox" data-slot="tp" checked> Trưởng phòng</label>
+            <label class="check"><input type="checkbox" data-slot="pp" checked> Phó phòng</label>
+            <label class="check"><input type="checkbox" data-slot="team" checked> Tổ trưởng / Quản lý / Trưởng nhóm</label>
+            <label class="check"><input type="checkbox" data-slot="cv"> Chuyên viên</label>
+            <label class="check"><input type="checkbox" data-slot="nv"> Nhân viên</label>
+            <label class="check"><input type="checkbox" data-slot="tt"> Thực tập</label>
+          </div>
+        </div>
+      </div>
+    </details>
     <div class="cfg-actions">
       <button class="btn primary" id="btnSave">Lưu cấu hình</button>
       <button class="btn" id="btnDraw">Xem trước</button>
@@ -813,7 +900,7 @@ function showModeFields() {
   document.querySelectorAll('.m-struct').forEach(el => el.classList.toggle('hide', m !== 'structure'));
 }
 function readConfig() {
-  return {
+  const c = {
     tableId: $('selTable').value, mode: $('selMode').value, name: $('selName').value,
     parent: $('selParent').value, code: $('selCode').value, alias: $('selAlias').value,
     title: $('selTitle').value, dept: $('selDept').value, team: $('selTeam').value, level: $('selLevel').value,
@@ -827,6 +914,8 @@ function readConfig() {
     deptMgr: $('selDeptMgr').value, emp: $('selEmp').value, showEmpAll: $('chkEmpAll').checked, defaultLayout: $('selLayout').value, packField: $('selPack').value,
     slots: Object.fromEntries([...document.querySelectorAll('[data-slot]')].map(x => [x.dataset.slot, x.checked])),
   };
+  c.detailFields = resolveDetailFields(c);
+  return c;
 }
 
 async function loadTable(tableId, saved) {
@@ -862,6 +951,7 @@ async function loadTable(tableId, saved) {
   $('selView').innerHTML = '<option value="">Tất cả dòng trong bảng</option>' + views.map(v => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');
   inactiveVals = null;
   const same = saved && saved.tableId === tableId;
+  detailSel = same && Array.isArray(saved.detailFields) ? saved.detailFields : null;
   if (same) {
     const map = { mode:'selMode', name:'selName', parent:'selParent', code:'selCode', alias:'selAlias', title:'selTitle',
       dept:'selDept', team:'selTeam', level:'selLevel', status:'selStatus', filterField:'selFilterField', photo:'selPhoto', shape:'selShape', deptUnder:'selDeptUnder',
@@ -880,6 +970,7 @@ async function loadTable(tableId, saved) {
   showModeFields();
   await reloadRecords();
   renderInactiveBox();
+  renderDetailBox();
   renderPackInfo();
   refreshFilterValues(saved && saved.tableId === tableId ? saved.filterValue : '');
   subscribeChanges();
@@ -1793,28 +1884,33 @@ function reveal(n) {
   select(n);
   requestAnimationFrame(() => centerOn(n.key));
 }
-/* ============ Ngăn chi tiết — chỉ thông tin công việc cơ bản ============
-   Không đọc các cột cá nhân (ngày sinh, giới tính, địa chỉ, CCCD, lương, BHXH, tài khoản ngân hàng, gia đình, hồ sơ giấy tờ…).
-   Chỉ lấy đúng những cột trong danh sách dưới đây; cột nào trùng tên với nhóm cá nhân sẽ bị loại. */
+/* ============ Ngăn chi tiết — chỉ thông tin công việc ============
+   Quản trị chọn các cột được hiện trong Cấu hình (mục "Thông tin khi xem chi tiết").
+   Các cột cá nhân (ngày sinh, giới tính, địa chỉ, CCCD, lương, BHXH, ngân hàng, người thân…) bị loại khỏi danh sách chọn. */
 const DI = {
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
   phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>',
   id: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17a3.5 3.5 0 0 1 7 0M15 9h3M15 13h3"/>',
   pin: '<path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
   briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   users: '<circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0 1 14 0M16 4a3.5 3.5 0 0 1 0 7M22 21a7 7 0 0 0-4-6.3"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  file: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
   lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   target: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
   branch: '<path d="m7 15 5 5 5-5M7 9l5-5 5 5"/>',
   filter: '<path d="M3 5h18l-7 8v6l-4-2v-4z"/>',
+  alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
 };
 const dic = (k) => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${DI[k] || ''}</svg>`;
 let detailTab = 'overview';
+const closedGroups = new Set();
 
-/* Cột mang tính cá nhân — không bao giờ hiển thị dù tên có khớp */
-const PERSONAL_RE = /ca nhan|rieng|personal|gmail|sinh|gioi tinh|dia chi|thuong tru|cho o|que quan|cccd|cmnd|can cuoc|ho chieu|luong|ngan hang|so tk|tai khoan ngan|bhxh|bhyt|ma so thue|^mst|vo\/chong|vo chong|nguoi than|khan cap|gia dinh|\(\d+\)|con thu|hon nhan|dan toc|ton giao|suc khoe/;
+/* Cột mang tính cá nhân — không cho chọn, không bao giờ hiển thị */
+const PERSONAL_RE = /ca nhan|rieng|personal|gmail|sinh|gioi tinh|dia chi|thuong tru|cho o|que quan|cccd|cmnd|can cuoc|ho chieu|luong|ngan hang|so tk|tai khoan ngan|bhxh|bhyt|kcb|ma so thue|^mst|vo\/chong|vo chong|nguoi than|khan cap|gia dinh|\(\d+\)|con thu|hon nhan|dan toc|ton giao|quoc tich|suc khoe|chieu cao|can nang|nhom mau/;
+const isPersonal = (m) => PERSONAL_RE.test(fold(m.name));
 function fieldBy(...res) {
   for (const re of res) { const f = fieldMetas.find(m => { const s = fold(m.name); return re.test(s) && !PERSONAL_RE.test(s); }); if (f) return f; }
   return null;
@@ -1827,12 +1923,127 @@ function cellDate(r, m) {
   if (typeof v === 'number' && v > -2.3e12 && v < 1e14) return new Date(v);
   const s = toText(v); const x = /(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/.exec(s);
   if (x) return new Date(+x[3], +x[2] - 1, +x[1]);
-  const y = /(\d{4})-(\d{2})-(\d{2})/.exec(s); return y ? new Date(+y[1], +y[2] - 1, +y[3]) : null;
+  const y = /(\d{4})[\/-](\d{2})[\/-](\d{2})/.exec(s); return y ? new Date(+y[1], +y[2] - 1, +y[3]) : null;
 }
 const dd = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 function yearsSince(d) { if (!d) return ''; const y = (Date.now() - d) / (365.25 * 864e5); return y < 1 ? `${Math.max(1, Math.round(y * 12))} tháng` : `${y.toFixed(y < 10 ? 1 : 0).replace('.', ',')} năm`; }
 function toneOf(v) { const s = fold(v); return /nghi|thoi viec|cham dut/.test(s) && !/phep|thai san|om/.test(s) ? 'red' : /thu viec|thuc tap|hoc viec|thai san|tam/.test(s) ? 'amber' : 'green'; }
 
+/* Nhóm thông tin (theo bản mẫu, đã bỏ các nhóm cá nhân) */
+const DETAIL_GROUPS = [
+  ['Liên hệ công việc', 'mail', /email|e-mail|sdt|dien thoai|so dt|phone|so may le|^ext|tai khoan to chuc|tai khoan lark|zalo|skype|teams/],
+  ['Vị trí & phòng ban', 'briefcase', /chuc danh|chuc vu|vi tri|phong ban|bo phan|^phong|^ban\b|nhom|^to\b|team|cap bac|level|noi lam viec|chi nhanh|van phong|cong ty|phap nhan|don vi|quan ly|cap tren|^ma\b|ma nv|ma nhan vien/],
+  ['Công việc & hợp đồng', 'clock', /ngay vao|chinh thuc|tham nien|nam lv|nam lam viec|hop dong|hdld|^loai hd|thu viec|trang thai|tinh trang|hinh thuc|ca lam/],
+];
+const DETAIL_OTHER = ['Khác', 'file'];
+const GROUP_MATCH_ORDER = [0, 2, 1];   // xét "Công việc & hợp đồng" trước để "Ngày vào công ty" không rơi vào nhóm Vị trí
+function detailGroupOf(m) { const f = fold(m.name); const i = GROUP_MATCH_ORDER.find(i => DETAIL_GROUPS[i][2].test(f)); return i === undefined ? DETAIL_OTHER : DETAIL_GROUPS[i]; }
+
+/* Các cột có thể chọn: bỏ cột tên, ảnh, tệp đính kèm, cột gói và cột cá nhân */
+function detailCandidates(cfg) {
+  const skip = new Set([cfg.name, cfg.photo, cfg.packField].filter(Boolean));
+  return fieldMetas.filter(m => !skip.has(m.id) && !/^p_/.test(m.id) && m.type !== FT('Attachment', 17) && !isPersonal(m)
+    && !/du lieu so do|org ?chart/.test(fold(m.name)));
+}
+function defaultDetailFields() {
+  return [...new Set([
+    fieldBy(/^email cong ty$/, /email (cong ty|cty|lam viec|noi bo)|work ?email|company ?email/, /^e-?mail$/),
+    fieldBy(/^sdt duoc cap$/, /(sdt|dien thoai|so dt|phone).*(cong ty|cty|duoc cap|noi bo|lam viec|work)/, /so may le|^ext/),
+    fieldBy(/tai khoan to chuc|tai khoan lark/),
+    fieldBy(/noi lam viec|chi nhanh|van phong|work ?place/),
+    fieldBy(/ngay vao cong ty/, /ngay vao|ngay bat dau|ngay nhan viec|start date/),
+    fieldBy(/^tham nien$/, /so nam lv|so nam lam viec/),
+  ].filter(Boolean).map(m => m.id))];
+}
+let detailSel = null;      // null = dùng lựa chọn mặc định
+function resolveDetailFields(cfg) {
+  const ok = new Set(detailCandidates(cfg).map(m => m.id));
+  return (detailSel || defaultDetailFields()).filter(id => ok.has(id));
+}
+
+/* ---------- Cột gói: thêm các thông tin chi tiết vào sau các cột dựng sơ đồ ---------- */
+const isDateMeta = (m) => T_DATE.includes(m.type);
+function packExtras(cfg) {
+  const base = new Set(PACK_KEYS.map(k => cfg[k]).filter(Boolean));
+  return (cfg.detailFields || []).filter(id => !base.has(id)).map(id => fieldMetas.find(f => f.id === id)).filter(Boolean);
+}
+const loose = (s) => fold(s).replace(/[^a-z0-9]/g, '');
+function extraExpected(r, m) { if (isDateMeta(m)) { const d = cellDate(r, m); return d ? dd(d) : ''; } return norm(toText(r.fields[m.id])); }
+function extraMatches(got, want, m) {
+  if (isDateMeta(m)) { const a = cellDate({ fields: { x: got } }, { id: 'x' }), b = cellDate({ fields: { x: want } }, { id: 'x' }); return (!a && !b) || (a && b && +a === +b); }
+  return loose(got) === loose(want);
+}
+/* Trả về các cột chi tiết đã chọn nhưng cột gói chưa chứa (công thức cũ) */
+function packMissing(cfg) {
+  if (!dashMode || snapMode || !cfg.packField) return [];
+  const ex = packExtras(cfg);
+  if (!ex.length) return [];
+  const rows = records.filter(r => norm(toText(r.fields[cfg.name])) && toText(r.fields[cfg.packField]));
+  if (!rows.length) return ex;
+  const bad = new Map(ex.map(m => [m.id, 0]));
+  for (const r of rows) {
+    const parts = toText(r.fields[cfg.packField]).split('|');
+    ex.forEach((m, i) => {
+      const got = parts[PACK_KEYS.length + i];
+      if (got === undefined || !extraMatches(got, extraExpected(r, m), m)) bad.set(m.id, bad.get(m.id) + 1);
+    });
+  }
+  return ex.filter(m => bad.get(m.id) > rows.length * 0.2);
+}
+
+/* ---------- Mục cấu hình "Thông tin khi xem chi tiết" ---------- */
+function setDetailSel(ids) {
+  detailSel = ids;
+  renderDetailBox(); renderPackInfo();
+  const n = selectedKey && nodeByKey.get(selectedKey);
+  if (n && $('detail').classList.contains('show')) showDetail(n);
+}
+function renderDetailBox() {
+  const box = $('detailBox');
+  if (!box) return;
+  const cfg = readConfig();
+  const cands = detailCandidates(cfg);
+  const sel = new Set(cfg.detailFields);
+  const miss = packMissing(cfg), missIds = new Set(miss.map(m => m.id));
+  const nPersonal = fieldMetas.filter(isPersonal).length;
+  $('detailCount').textContent = cands.length ? `Đã chọn ${sel.size}/${cands.length}` : '';
+  if (!cands.length) { box.innerHTML = '<div class="db-note">Chưa đọc được cột nào của bảng.</div>'; return; }
+  const groups = new Map();
+  for (const m of cands) { const g = detailGroupOf(m); if (!groups.has(g[0])) groups.set(g[0], []); groups.get(g[0]).push(m); }
+  const order = [...DETAIL_GROUPS.map(g => g[0]), DETAIL_OTHER[0]].filter(g => groups.has(g));
+  box.innerHTML = `
+    ${miss.length ? `<div class="db-warn">${dic('alert')}<span><b>Cột gói chưa cập nhật</b> ${miss.length} thông tin vừa chọn: ${esc(miss.map(m => m.name).join(', '))}. Người xem dashboard chưa thấy các thông tin này.</span><button class="btn" type="button" data-db="pack">Cập nhật cột</button></div>` : ''}
+    <div class="db-acts">
+      <input type="search" id="dbSearch" placeholder="Tìm cột…" aria-label="Tìm cột">
+      <button class="btn" type="button" data-db="default">Mặc định</button>
+      <button class="btn" type="button" data-db="all">Chọn hết</button>
+      <button class="btn" type="button" data-db="none">Bỏ hết</button>
+    </div>
+    ${order.map(g => { const list = groups.get(g), on = list.filter(m => sel.has(m.id)).length;
+      return `<div class="db-grp"><div class="db-grp-h">${esc(g)} <span>${on}/${list.length}</span><button type="button" data-db-grp="${esc(g)}" data-on="${on === list.length ? 0 : 1}">${on === list.length ? 'Bỏ nhóm' : 'Chọn cả nhóm'}</button></div>
+        <div class="db-list">${list.map(m => `<label class="${sel.has(m.id) ? 'on' : ''}${missIds.has(m.id) ? ' miss' : ''}" data-name="${esc(fold(m.name))}"${missIds.has(m.id) ? ' title="Cột gói chưa có thông tin này"' : ''}><input type="checkbox" data-fid="${esc(m.id)}"${sel.has(m.id) ? ' checked' : ''}>${esc(m.name)}</label>`).join('')}</div></div>`; }).join('')}
+    <div class="db-note">${dic('lock')}<span>${nPersonal ? `Đã ẩn ${nPersonal} cột thông tin cá nhân (ngày sinh, giới tính, địa chỉ, CCCD, lương, BHXH, ngân hàng, người thân…), không thể chọn để hiển thị.` : 'Các cột thông tin cá nhân luôn được ẩn.'}${dashMode && !cfg.packField ? ' Khối đang lưu bản chụp: thông tin được chọn sẽ lưu kèm khi bấm Lưu cấu hình.' : ''}</span></div>`;
+  const ids = () => [...box.querySelectorAll('input[data-fid]:checked')].map(x => x.dataset.fid);
+  box.querySelectorAll('input[data-fid]').forEach(cb => cb.onchange = () => setDetailSel(ids()));
+  box.querySelectorAll('[data-db-grp]').forEach(b => b.onclick = () => {
+    const want = b.dataset.on === '1';
+    const inGrp = new Set(groups.get(b.dataset.dbGrp).map(m => m.id));
+    setDetailSel([...new Set([...ids().filter(id => !inGrp.has(id)), ...(want ? inGrp : [])])]);
+  });
+  box.querySelector('[data-db="default"]').onclick = () => setDetailSel(null);
+  box.querySelector('[data-db="all"]').onclick = () => setDetailSel(cands.map(m => m.id));
+  box.querySelector('[data-db="none"]').onclick = () => setDetailSel([]);
+  const pk = box.querySelector('[data-db="pack"]');
+  if (pk) pk.onclick = () => $('btnMakePack').click();
+  const q = $('dbSearch');
+  q.oninput = () => {
+    const s = fold(q.value);
+    box.querySelectorAll('.db-list label').forEach(l => { l.style.display = !s || l.dataset.name.includes(s) ? '' : 'none'; });
+    box.querySelectorAll('.db-grp').forEach(g => { g.style.display = [...g.querySelectorAll('label')].some(l => l.style.display !== 'none') ? '' : 'none'; });
+  };
+}
+
+/* ---------- Ngăn chi tiết ---------- */
 function personChip(p, sub) {
   if (!p) return '';
   const [c, cs] = colorOf(p.dept);
@@ -1842,6 +2053,20 @@ function personChip(p, sub) {
   return `<button class="person" data-goto="${p.key}" title="Xem ${esc(p.name)} trên sơ đồ">${ava}<span class="p-txt"><b>${esc(p.name)}</b>${s ? `<small>${esc(s)}</small>` : ''}</span></button>`;
 }
 const dcard = (title, ic, body) => `<section class="dcard"><header class="dcard-h"><span class="dcard-ic">${dic(ic)}</span><h4>${esc(title)}</h4></header><div class="dcard-b">${body}</div></section>`;
+
+/* Tab Hồ sơ: các cột đã chọn, gom nhóm và thu gọn được như bản mẫu */
+function profileTab(r, metas) {
+  const rows = metas.map(m => [m, cellText(r, m)]).filter(([, v]) => v);
+  if (!rows.length) return '';
+  const groups = new Map();
+  for (const [m, v] of rows) { const g = detailGroupOf(m); if (!groups.has(g[0])) groups.set(g[0], { ic: g[1], list: [] }); groups.get(g[0]).list.push([m, v]); }
+  const order = [...DETAIL_GROUPS.map(g => g[0]), DETAIL_OTHER[0]].filter(g => groups.has(g));
+  return `<div class="grp-note">${rows.length} thông tin công việc</div>` + order.map(g => { const { ic, list } = groups.get(g);
+    return `<details class="dcard dgroup" data-grp="${esc(g)}"${closedGroups.has(g) ? '' : ' open'}>
+      <summary class="dcard-h"><span class="dcard-ic">${dic(ic)}</span><h4>${esc(g)}</h4><span class="grp-n">${list.length}</span></summary>
+      <div class="dcard-b"><dl class="kv">${list.map(([m, v]) => `<div class="kv-row"><dt>${esc(m.name)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></div>
+    </details>`; }).join('');
+}
 
 function closeDetail() {
   $('detail').classList.remove('show'); selectedKey = null;
@@ -1860,14 +2085,17 @@ function showDetail(n) {
   boss = boss && boss.kind === 'person' ? boss : null;
   const ops = isPerson && n.opsId ? [...nodeByKey.values()].find(x => x.recordId === n.opsId && x.kind === 'person') : null;
 
-  /* --- chỉ các cột công việc --- */
+  /* --- chỉ các cột quản trị đã chọn --- */
+  const chosen = new Set(cfg.detailFields);
+  const metas = fieldMetas.filter(m => chosen.has(m.id) && !isPersonal(m));
+  const pick = (m) => (m && chosen.has(m.id) ? m : null);
   const F = r ? {
-    email: fieldBy(/^email cong ty$/, /email (cong ty|cty|lam viec|noi bo)|work ?email|company ?email/, /^e-?mail$/),
-    phone: fieldBy(/^sdt duoc cap$/, /(sdt|dien thoai|so dt|phone).*(cong ty|cty|duoc cap|noi bo|lam viec|work)/, /so may le|^ext/),
-    account: fieldBy(/tai khoan to chuc|tai khoan lark/),
-    place: fieldBy(/noi lam viec|chi nhanh|van phong|work ?place/),
-    start: fieldBy(/ngay vao cong ty/, /ngay vao|ngay bat dau|ngay nhan viec|start date/),
-    tenure: fieldBy(/^tham nien$/, /so nam lv|so nam lam viec/),
+    email: pick(fieldBy(/^email cong ty$/, /email (cong ty|cty|lam viec|noi bo)|work ?email|company ?email/, /^e-?mail$/)),
+    phone: pick(fieldBy(/^sdt duoc cap$/, /(sdt|dien thoai|so dt|phone).*(cong ty|cty|duoc cap|noi bo|lam viec|work)/, /so may le|^ext/)),
+    account: pick(fieldBy(/tai khoan to chuc|tai khoan lark/)),
+    place: pick(fieldBy(/noi lam viec|chi nhanh|van phong|work ?place/)),
+    start: pick(fieldBy(/ngay vao cong ty/, /ngay vao|ngay bat dau|ngay nhan viec|start date/)),
+    tenure: pick(fieldBy(/^tham nien$/, /so nam lv|so nam lam viec/)),
     leave: fieldBy(/^ngay nghi viec$/, /ngay nghi viec/),
   } : {};
   const status = r && cfg.status ? norm(toText(r.fields[cfg.status])) : '';
@@ -1892,7 +2120,7 @@ function showDetail(n) {
     : [[n.children.length, isPerson ? 'Cấp dưới trực tiếp' : 'Mục trực thuộc'], [countAll(n), 'Tổng số người bên dưới']];
   if (tenure) stats.push([tenure, 'Thâm niên']);
 
-  /* --- tab Tổng quan: thông tin công việc --- */
+  /* --- tab Tổng quan --- */
   let overview = '';
   if (isPerson) {
     const tiles = [['briefcase', 'Phòng ban', n.dept, 'blue'], ['users', 'Nhóm', n.team && fold(n.team) !== fold(n.dept) ? n.team : '', 'teal'],
@@ -1904,6 +2132,9 @@ function showDetail(n) {
       ['Ngày vào', startD ? dd(startD) : ''], ['Thâm niên', tenure]].filter(x => x[1]);
     if (mini.length) overview += dcard('Vị trí', 'user', `<div class="mini-stats">${mini.map(([l, v]) => `<div><small>${l}</small><b>${esc(v)}</b></div>`).join('')}</div>`);
   }
+
+  /* --- tab Hồ sơ --- */
+  const profile = r ? profileTab(r, metas) : '';
 
   /* --- tab Tổ chức --- */
   let org = '';
@@ -1920,7 +2151,7 @@ function showDetail(n) {
     `<div class="people col">${n.members.slice(0, 80).map(m => `<button class="person" data-goto-rec="${esc(m.recordId)}"><span class="p-ava" style="--c:${c};--cs:${cs}">${esc(initials(m.name))}</span><span class="p-txt"><b>${esc(m.name)}</b><small>${esc(m.title || '')}</small></span></button>`).join('')}${n.members.length > 80 ? `<span class="muted">+${n.members.length - 80} người</span>` : ''}</div>`);
   if (!org) org = `<div class="d-empty">Không có quan hệ quản lý nào để hiển thị.</div>`;
 
-  const tabs = [['overview', 'Tổng quan', overview], ['org', 'Tổ chức', org]].filter(t => t[2]);
+  const tabs = [['overview', 'Tổng quan', overview], ['profile', 'Hồ sơ', profile], ['org', 'Tổ chức', org]].filter(t => t[2]);
   if (!tabs.some(t => t[0] === detailTab)) detailTab = tabs[0][0];
   const filtOn = n.dept && deptFilter === n.dept;
   const note = isPerson ? `<p class="d-note">${dic('lock')}Chỉ hiển thị thông tin công việc, thông tin cá nhân được ẩn.</p>` : '';
@@ -1928,7 +2159,7 @@ function showDetail(n) {
     <div class="hrd">
       <section class="hero" style="--c:${c};--cs:${cs}">
         <div class="hero-bg"></div>
-        <button class="d-close" id="dClose" title="Đóng (Esc)">${dic('x')}</button>
+        <button class="d-close" id="dClose" title="Đóng (Esc)" aria-label="Đóng">${dic('x')}</button>
         <div class="ava">${avaInner}</div>
         <h2>${esc(n.name)}</h2>
         ${title ? `<p class="hero-sub">${esc(title)}</p>` : ''}
@@ -1955,8 +2186,11 @@ function showDetail(n) {
     showDetail(n);
     requestAnimationFrame(() => { if (off) { fitReadable(); centerOn(n.key); } else fit(); });
   };
-  const sc = D.querySelector('.hrd');
-  D.querySelectorAll('[data-dtab]').forEach(b => b.onclick = () => { detailTab = b.dataset.dtab; const st = sc.scrollTop; showDetail(n); const s2 = D.querySelector('.hrd'); s2.scrollTop = Math.min(st, D.querySelector('.hero').offsetHeight); });
+  D.querySelectorAll('[data-dtab]').forEach(b => b.onclick = () => {
+    detailTab = b.dataset.dtab; const st = D.querySelector('.hrd').scrollTop; showDetail(n);
+    D.querySelector('.hrd').scrollTop = Math.min(st, D.querySelector('.hero').offsetHeight);
+  });
+  D.querySelectorAll('details.dgroup').forEach(d => d.addEventListener('toggle', () => { if (d.open) closedGroups.delete(d.dataset.grp); else closedGroups.add(d.dataset.grp); }));
   D.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => { const t = nodeByKey.get(el.dataset.goto); if (t) reveal(t); });
   D.querySelectorAll('[data-goto-rec]').forEach(el => el.onclick = () => {
     if (layout === 'org' && readConfig().mode === 'structure') setLayout('staff');
@@ -2353,7 +2587,7 @@ async function applySaved(c) {
    kể cả khi Base App không cho đọc trực tiếp base nguồn. */
 function buildSnapshot(cfg, dropAlias) {
   // Chỉ lưu những người đang hiển thị (đã áp dụng view, ẩn nghỉ việc, bộ lọc) và các cột cần để vẽ
-  const ids = [...new Set([cfg.name, cfg.parent, cfg.code, dropAlias ? '' : cfg.alias, cfg.title, cfg.dept, cfg.team, cfg.level, cfg.deptMgr, cfg.emp].filter(Boolean))];
+  const ids = [...new Set([cfg.name, cfg.parent, cfg.code, dropAlias ? '' : cfg.alias, cfg.title, cfg.dept, cfg.team, cfg.level, cfg.deptMgr, cfg.emp, ...(cfg.detailFields || [])].filter(Boolean))];
   const metas = fieldMetas.filter(f => ids.includes(f.id)).map(f => ({ id: f.id, name: f.name, type: f.type }));
   const cols = metas.map(m => m.id);
   const linkSet = new Set(metas.filter(f => f.type === FieldType.SingleLink || f.type === FieldType.DuplexLink).map(f => f.id));
@@ -2381,6 +2615,7 @@ function snapshotRecords(sn) {
 function loadSnapshot(saved) {
   snapMode = true; currentTable = null;
   fieldMetas = saved.snapshot.metas || [];
+  detailSel = Array.isArray(saved.detailFields) ? saved.detailFields : null;
   for (const id of ['selName', 'selParent']) fillSelect($(id), fieldMetas, false);
   for (const id of ['selCode', 'selAlias', 'selTitle', 'selDept', 'selTeam', 'selLevel', 'selStatus', 'selFilterField', 'selPhoto', 'selDeptMgr', 'selEmp']) fillSelect($(id), fieldMetas, true);
   const map = { mode:'selMode', name:'selName', parent:'selParent', code:'selCode', alias:'selAlias', title:'selTitle', dept:'selDept', team:'selTeam',
@@ -2411,8 +2646,11 @@ function setSnapNote(at) {
    người, onDataChange báo khi dữ liệu đổi, và quyền xem khối đi theo quyền xem bảng nguồn. */
 const fieldNameOf = (id) => { const f = fieldMetas.find(x => x.id === id); return f ? f.name : ''; };
 function packFormula(cfg) {
-  return PACK_KEYS.map(k => (cfg[k] && fieldNameOf(cfg[k]) ? `[${fieldNameOf(cfg[k])}]` : '""')).join('&"|"&');
+  const base = PACK_KEYS.map(k => (cfg[k] && fieldNameOf(cfg[k]) ? `[${fieldNameOf(cfg[k])}]` : '""'));
+  const ext = packExtras(cfg).map(m => (isDateMeta(m) ? `TEXT([${m.name}],"DD/MM/YYYY")` : `[${m.name}]`));
+  return [...base, ...ext].join('&"|"&');
 }
+const packHead = (s) => String(s || '').split('|').slice(0, PACK_KEYS.length).join('|');
 const packNorm = (s) => String(s || '').split('|').map(x => norm(x)).join('|');
 function packExpected(r, cfg) { return PACK_KEYS.map(k => (cfg[k] ? norm(toText(r.fields[cfg[k]])) : '')).join('|'); }
 function fillPackSelect(keep) {
@@ -2427,20 +2665,29 @@ function renderPackInfo() {
   if (!dashMode || snapMode || !el) return;
   const cfg = readConfig();
   const fx = packFormula(cfg);
-  let status = '';
+  const miss = packMissing(cfg);
+  let status = '', stale = false;
   if (cfg.packField) {
     let ok = 0, total = 0;
     for (const r of records) {
       if (!norm(toText(r.fields[cfg.name]))) continue;
       total++;
-      if (packNorm(toText(r.fields[cfg.packField])) === packNorm(packExpected(r, cfg))) ok++;
+      if (packNorm(packHead(toText(r.fields[cfg.packField]))) === packNorm(packExpected(r, cfg))) ok++;
     }
-    status = total && ok === total
-      ? `<div class="ok">✓ Cột hợp lệ: khớp ${ok}/${total} dòng. Khối sẽ tự cập nhật khi dữ liệu thay đổi.</div>`
-      : `<div class="bad">⚠ Mới khớp ${ok}/${total} dòng. Công thức của cột chưa đúng các cột đang chọn — bấm "Tạo / cập nhật cột tự động", hoặc tự dán công thức mẫu dưới vào cột.</div>`;
+    stale = !(total && ok === total) || miss.length > 0;
+    status = !stale
+      ? `<div class="ok">✓ Cột hợp lệ: khớp ${ok}/${total} dòng${packExtras(cfg).length ? `, đã gồm ${packExtras(cfg).length} thông tin chi tiết` : ''}. Khối sẽ tự cập nhật khi dữ liệu thay đổi.</div>`
+      : miss.length && total && ok === total
+        ? `<div class="bad">⚠ Cột gói chưa cập nhật: còn thiếu ${miss.length} thông tin chi tiết vừa chọn (${esc(miss.map(m => m.name).join(', '))}). Bấm "Cập nhật cột", hoặc tự dán công thức bên dưới vào cột.</div>`
+        : `<div class="bad">⚠ Mới khớp ${ok}/${total} dòng. Công thức của cột chưa đúng các cột đang chọn — bấm "Cập nhật cột", hoặc tự dán công thức mẫu dưới vào cột.</div>`;
   } else {
     status = '<div>Chọn cột "Dữ liệu sơ đồ" hoặc bấm <b>Tạo cột tự động</b>. Khi dùng cột này: khối <b>tự cập nhật</b> khi dữ liệu nhân sự thay đổi, <b>không lưu bản chụp</b>, và chỉ ai có quyền xem bảng nhân sự mới xem được khối.</div>';
   }
+  const sec = $('packSec');
+  if (stale && !sec.classList.contains('need-update')) { sec.open = true; toast(miss.length ? `Cột gói chưa có ${miss.length} thông tin chi tiết vừa chọn — cần cập nhật cột` : 'Cột gói chưa khớp các cột đang chọn — cần cập nhật cột', 5000); }
+  sec.classList.toggle('need-update', stale);
+  $('packBadge').classList.toggle('hide', !stale);
+  $('btnMakePack').textContent = cfg.packField ? 'Cập nhật cột' : 'Tạo cột tự động';
   el.innerHTML = `${status}<div style="margin-top:6px">Công thức của cột (theo các cột đang chọn ở trên):</div><code>${esc(fx)}</code>
     <button class="btn" id="btnCopyPack" type="button">Sao chép công thức</button>`;
   $('btnCopyPack').onclick = async () => {
@@ -2462,7 +2709,7 @@ async function makePackColumn() {
       dlog('pack.update.error', String(e && e.message || e));
       throw new Error(`Không sửa được công thức cột "${cur.name}" (cần quyền chỉnh sửa cấu trúc bảng). Hãy tự mở cột đó và dán công thức bên dưới.`);
     }
-    await reloadRecords(); renderPackInfo();
+    await reloadRecords(); renderDetailBox(); renderPackInfo();
     toast(`Đã cập nhật công thức cột "${cur.name}"`, 5000);
     return;
   }
@@ -2480,7 +2727,7 @@ async function makePackColumn() {
     throw new Error('Không tạo được cột (cần quyền chỉnh sửa cấu trúc bảng nguồn). Hãy tự thêm cột Công thức tên "Dữ liệu sơ đồ" và dán công thức bên dưới.');
   }
   await reloadRecords();
-  renderPackInfo();
+  renderDetailBox(); renderPackInfo();
   toast(`Đã tạo cột "${name}" trong bảng nguồn`, 5000);
 }
 async function dashFor(token) {
@@ -2488,7 +2735,7 @@ async function dashFor(token) {
   try { const app = await withTimeout(workspace.getBitable(token), 8000); return (app && app.dashboard) || dashboard; }
   catch (e) { return dashboard; }
 }
-function parsePacked(data, order) {
+function parsePacked(data, order, extra = []) {
   const out = [];
   if (!Array.isArray(data)) return out;
   for (let i = 1; i < data.length; i++) {
@@ -2500,6 +2747,7 @@ function parsePacked(data, order) {
     const parts = s2.split('|');
     const f = {};
     order.forEach((k, j) => { const v = norm(parts[j]); if (v) f['p_' + k] = v; });
+    extra.forEach((e, j) => { const v = norm(parts[order.length + j]); if (v) f[e.id] = v; });
     const cnt = Math.max(1, Math.min(50, Number((row[1] || {}).value) || 1));
     for (let c = 0; c < cnt; c++) out.push({ recordId: `pk${i}_${c}`, fields: f });
   }
@@ -2508,11 +2756,13 @@ function parsePacked(data, order) {
 async function loadPacked(saved) {
   const data = await withTimeout(packDash.getData(), 15000);
   const order = saved.packOrder || PACK_KEYS, names = saved.packNames || {};
-  const recs = parsePacked(data, order);
+  const extra = Array.isArray(saved.packExtra) ? saved.packExtra : [];
+  const recs = parsePacked(data, order, extra);
   dlog('pack.getData', { groups: Array.isArray(data) ? data.length - 1 : null, rows: recs.length });
   if (!recs.length) throw new Error('getData chưa trả dữ liệu');
   snapMode = true; packMode = true; packSaved = saved; currentTable = null;
-  fieldMetas = order.map(k => ({ id: 'p_' + k, name: names[k] || k, type: 1 }));
+  fieldMetas = [...order.map(k => ({ id: 'p_' + k, name: names[k] || k, type: 1 })), ...extra.map(e => ({ id: e.id, name: e.name, type: 1 }))];
+  detailSel = Array.isArray(saved.detailFields) ? saved.detailFields : extra.map(e => e.id);
   for (const id of ['selName', 'selParent']) fillSelect($(id), fieldMetas, false);
   for (const id of ['selCode', 'selAlias', 'selTitle', 'selDept', 'selTeam', 'selLevel', 'selStatus', 'selFilterField', 'selPhoto', 'selDeptMgr', 'selEmp']) fillSelect($(id), fieldMetas, true);
   const map = { name: 'selName', parent: 'selParent', code: 'selCode', alias: 'selAlias', title: 'selTitle', dept: 'selDept', team: 'selTeam',
@@ -2538,7 +2788,9 @@ async function saveDashboardConfig() {
       groups: [{ fieldId: cfg.packField }], series: 'COUNTA' };
     if (srcToken) cond.baseToken = srcToken;
     const packNames = Object.fromEntries(PACK_KEYS.map(k => [k, cfg[k] ? fieldNameOf(cfg[k]) : '']));
-    const payload = { customConfig: { ...cfg, packOrder: PACK_KEYS, packNames, saveMode: 'pack' }, dataConditions: [cond] };
+    const packExtra = packExtras(cfg).map(m => ({ id: m.id, name: m.name }));
+    const payload = { customConfig: { ...cfg, packOrder: PACK_KEYS, packNames, packExtra, saveMode: 'pack' }, dataConditions: [cond] };
+    const stale = packMissing(cfg);
     try {
       const d = await dashFor(srcToken);
       const r = await d.saveConfig(payload);
@@ -2547,7 +2799,7 @@ async function saveDashboardConfig() {
         try { const pv = await withTimeout(d.getPreviewData(cond), 8000); dlog('save.pack.preview', { rows: Array.isArray(pv) ? parsePacked(pv, PACK_KEYS).length : null }); }
         catch (e) { dlog('save.pack.preview.error', String(e && e.message || e)); }
         await draw();
-        toast('Đã lưu. Khối sẽ tự cập nhật khi dữ liệu nhân sự thay đổi.', 5000);
+        toast(stale.length ? `Đã lưu, nhưng cột gói chưa có: ${stale.map(m => m.name).join(', ')}. Bấm "Cập nhật cột" để người xem thấy đủ thông tin.` : 'Đã lưu. Khối sẽ tự cập nhật khi dữ liệu nhân sự thay đổi.', stale.length ? 8000 : 5000);
         return;
       }
     } catch (e) {
@@ -2754,8 +3006,12 @@ async function init() {
   $('btnConfig').onclick = () => $('config').classList.toggle('open');
   $('btnCloseCfg').onclick = () => $('config').classList.remove('open');
   $('inpTitle').oninput = applyTitle;
-  $('config').addEventListener('change', (e) => { if (e.target && e.target.id !== 'selPack') renderPackInfo(); });
-  $('selPack').onchange = renderPackInfo;
+  $('config').addEventListener('change', (e) => {
+    if (!e.target || e.target.closest('#detailBox')) return;
+    if (/^sel(Name|Photo|Pack|Table)$/.test(e.target.id)) renderDetailBox();
+    if (e.target.id !== 'selPack') renderPackInfo();
+  });
+  $('selPack').onchange = () => { renderDetailBox(); renderPackInfo(); };
   $('btnMakePack').onclick = safe(makePackColumn);
   document.querySelectorAll('#layoutSeg [data-layout]').forEach(b => b.onclick = () => setLayout(b.dataset.layout));
   $('selLayout').onchange = () => { layout = $('selLayout').value; layoutTouched = true; if (tree) rebuild(); };
