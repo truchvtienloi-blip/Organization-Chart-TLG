@@ -276,6 +276,7 @@
   .cfg-actions { position:sticky; bottom:calc(var(--cp) * -1); z-index:3; flex-wrap:wrap; align-items:center; background:var(--panel); border-top:1px solid var(--border); margin:12px calc(var(--cp) * -1) 0; padding:10px var(--cp); }
   body.dash-config .cfg-actions { margin-bottom:calc(var(--cp) * -1); }
   .cfg-ver { margin-left:auto; font-size:10.5px; color:var(--faint); }
+  .cfg-ver kbd { font:inherit; font-size:10px; padding:0 4px; border:1px solid var(--border); border-bottom-width:2px; border-radius:4px; background:var(--card); color:var(--muted); }
   .pack-box .field { margin:8px 0 2px; }
   .pack-lead { font-size:11.5px; color:var(--muted); line-height:1.5; font-weight:400; }
   .pack-steps { margin:8px 0 6px; padding-left:18px; color:var(--text); line-height:1.6; }
@@ -487,8 +488,6 @@
   /* ---------- Chạy trong khối dashboard (Base / Base App) ---------- */
   .m-dash, .m-base { }
   #btnSave { display:none; }
-  #btnDiagView { display:none; color:var(--faint); }
-  body.dash:not(.dash-config) #btnDiagView { display:inline-flex; }
   body.dash .top { display:none; }
   body.dash:not(.dash-config) #notice { display:none !important; }   /* người xem dashboard không cần thấy cảnh báo dữ liệu */
   body.dash-config #config { display:block; position:fixed; right:0; top:0; bottom:0; width:320px; max-height:none;
@@ -614,7 +613,6 @@
       <button class="btn pct" id="zPct" title="Vừa màn hình">100%</button>
       <button class="btn icon" id="zIn" title="Phóng to">+</button>
     </div>
-    <button class="btn icon" id="btnDiagView" title="Chẩn đoán (gửi cho người hỗ trợ)" aria-label="Chẩn đoán"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></button>
   </div>
 
   <div id="config">
@@ -771,8 +769,8 @@
       <button class="btn primary" id="btnSave">Lưu cấu hình</button>
       <button class="btn" id="btnDraw">Xem trước</button>
       <button class="btn" id="btnCloseCfg">Đóng</button>
-      <button class="btn" id="btnDiag" title="Thu thập thông tin để gửi người hỗ trợ">Chẩn đoán</button>
-      <span class="cfg-ver">v<span id="appVer"></span></span>
+      <button class="btn" id="btnDiag" title="Thu thập thông tin để gửi người hỗ trợ (phím tắt Ctrl + Shift + D, dùng được cả khi đang xem dashboard)">Chẩn đoán</button>
+      <span class="cfg-ver"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> mở Chẩn đoán · v<span id="appVer"></span></span>
     </div>
     <p class="dash-hint">Bấm <b>Xem trước</b> để thử, rồi bấm <b>Lưu cấu hình</b> để lưu sơ đồ vào khối này. Mọi người xem dashboard sẽ thấy sơ đồ theo cấu hình đã lưu.</p>
   </div>
@@ -817,9 +815,10 @@ const SourceType = SDK.SourceType || { ALL: 'ALL' };
 
 const $ = (id) => document.getElementById(id);
 const CONFIG_KEY = 'orgchart-config-v4';
-const APP_VERSION = '2026-11-09.4';
+const APP_VERSION = '2026-11-09.5';
 const diagLog = [];   // nhật ký các bước làm việc với dashboard
-const dlog = (step, info) => { diagLog.push({ t: new Date().toISOString().slice(11, 19), step, info }); if (diagLog.length > 60) diagLog.shift(); };
+const scrubThumbs = (v) => { try { return v && typeof v === 'object' ? JSON.parse(JSON.stringify(v, (k, x) => (k === 'photoThumbs' && x && x.d ? { n: Object.keys(x.d).length, at: x.at } : x))) : v; } catch (e) { return v; } };
+const dlog = (step, info) => { info = scrubThumbs(info); diagLog.push({ t: new Date().toISOString().slice(11, 19), step, info }); if (diagLog.length > 60) diagLog.shift(); };
 
 let currentTable = null;
 let fieldMetas = [];
@@ -1649,7 +1648,8 @@ function urlFromCell(v) {
 /* Ảnh ở chế độ tự cập nhật (cột gói): link ảnh của Lark là link tạm nên không gói được.
    Cột gói chỉ mang tên tệp ảnh (để Lark báo khi ảnh đổi); link ảnh được đọc lại từ bảng nguồn — chỉ 2 cột:
    cột khóa (Mã NV, không có thì Họ tên) và cột ảnh — rồi ghép với từng người theo khóa. */
-let photoInfo = '', photoRetry = 0;
+let photoInfo = '', photoRetry = 0, viewNoTable = false;
+const isConfigOnlyErr = (e) => /only supported in config mode/i.test(String(e && e.message || e));
 /* Người xem dashboard thường không được Lark cho đọc tệp đính kèm (cột gói chỉ mang tên tệp).
    Vì vậy khi Lưu, khối thu nhỏ ảnh đang hiện (72×96, JPEG) và cất vào cấu hình khối.
    Khi xem: hiện ảnh nhỏ ngay, nếu đọc được bảng nguồn thì thay bằng ảnh gốc mới nhất. */
@@ -1672,16 +1672,32 @@ async function buildPhotoThumbs(cfg, rows) {
   const jobs = [], seen = new Set();
   for (const r of rows) {
     const u = photoUrls.get(r.recordId), k = fold(toText(r.fields[keyId]));
-    if (u && k && !seen.has(k) && !u.startsWith('data:')) { seen.add(k); jobs.push([k, u]); }
+    if (u && k && !seen.has(k) && !u.startsWith('data:')) { seen.add(k); jobs.push([k, u, attName(r.fields[cfg.photo])]); }
   }
-  const d = {}; let bytes = 0, fail = 0, firstErr = '';
+  const d = {}, f = {}; let bytes = 0, fail = 0, firstErr = '';
+  jobs.forEach(([k, , n]) => { if (n) f[k] = n; });
   for (let i = 0; i < jobs.length && bytes < THUMB_MAX; i += 6) {
     const out = await Promise.all(jobs.slice(i, i + 6).map(([k, u]) => makeThumb(u).then(b => [k, b]).catch(e => { fail++; firstErr = firstErr || String(e && e.message || e); return null; })));
     for (const x of out) if (x && bytes + x[1].length <= THUMB_MAX) { d[x[0]] = x[1]; bytes += x[1].length; }
   }
   thumbInfo = `Ảnh nhỏ lưu kèm: ${Object.keys(d).length}/${jobs.length} (${Math.round(bytes / 1024)} KB)${fail ? ` · lỗi ${fail}: ${firstErr}` : ''}${bytes >= THUMB_MAX ? ' · đã đạt giới hạn dung lượng' : ''}`;
   dlog('photo.thumbs', thumbInfo);
-  return Object.keys(d).length ? { k: useCode ? 'code' : 'name', at: Date.now(), d } : null;
+  return Object.keys(d).length ? { k: useCode ? 'code' : 'name', at: Date.now(), d, f } : null;
+}
+const attName = (v) => (Array.isArray(v) ? v.map(a => a && a.name).filter(Boolean).join(',') : '');
+/* Cấu hình: so tên tệp ảnh hiện tại với lần lưu trước → báo ai đã đổi / thêm ảnh */
+function staleThumbs(cfg) {
+  const t = dashSaved && dashSaved.customConfig && dashSaved.customConfig.photoThumbs;
+  if (!t || !cfg.photo || snapMode) return null;
+  const keyId = t.k === 'code' ? cfg.code : cfg.name;
+  const old = t.f || {};
+  let changed = 0, added = 0;
+  for (const r of filteredRows(cfg)) {
+    const k = fold(toText(r.fields[keyId])), n = attName(r.fields[cfg.photo]);
+    if (!k || !n) continue;
+    if (!t.d[k]) added++; else if (old[k] && old[k] !== n) changed++;
+  }
+  return { changed, added, at: t.at };
 }
 function seedThumbs(saved) {
   thumbUrls = new Map();
@@ -1696,7 +1712,7 @@ function seedThumbs(saved) {
 function updatePhotoChip() {
   let el = $('photoChip');
   const cfg = readConfig();
-  const show = cfg.photo && !photoUrls.size && records.length;
+  const show = false && cfg.photo && !photoUrls.size && records.length;   // không hiện cho người xem
   if (show && !photoInfo) photoInfo = 'Chưa có ảnh nào';
   if (!show) { if (el) el.remove(); return; }
   if (!el) {
@@ -1781,11 +1797,18 @@ async function loadPhotos(cfg, rows) {
   const next = new Map();
   const meta = cfg.photo && fieldMetas.find(f => f.id === cfg.photo);
   const packAtt = packMode && packSaved && meta && (packSaved.packExtra || []).some(e => e.id === cfg.photo && e.att);
+  if (packAtt && viewNoTable) {
+    for (const r of rows) if (thumbUrls.has(r.recordId)) next.set(r.recordId, thumbUrls.get(r.recordId));
+    photoInfo = `Chế độ xem: Lark không cho đọc bảng nguồn → dùng ảnh lưu kèm khối (${next.size} người)`;
+    if (seq === photoSeq) photoUrls = next;
+    return;
+  }
   if (packAtt) {
     try { await loadPackPhotos(cfg, rows, seq, next); }
     catch (e) {
       photoInfo = 'Không đọc được ảnh: ' + String(e && e.message || e); dlog('photo.pack.error', photoInfo);
-      if (seq === photoSeq && photoRetry < 3) { const t = [4000, 15000, 45000][photoRetry++]; setTimeout(() => { const c = readConfig(); loadPhotos(c, filteredRows(c)).then(() => { if (tree) render(); updatePhotoChip(); }).catch(() => {}); }, t); }
+      if (isConfigOnlyErr(e)) viewNoTable = true;
+      else if (seq === photoSeq && photoRetry < 3) { const t = [4000, 15000, 45000][photoRetry++]; setTimeout(() => { const c = readConfig(); loadPhotos(c, filteredRows(c)).then(() => { if (tree) render(); updatePhotoChip(); }).catch(() => {}); }, t); }
     }
     if (next.size) photoRetry = 0;
     if (seq !== photoSeq) return;
@@ -2962,7 +2985,7 @@ async function useBase(token) {
   let tables = [];
   for (let i = 0; i < (token ? 6 : 1) && !tables.length; i++) {   // chỉ thử lại với base ngoài app
     try { tables = (await withTimeout(srcBase.getTableMetaList(), 15000)) || []; }
-    catch (e) { dlog('base.tables.error', String(e && e.message || e)); }
+    catch (e) { dlog('base.tables.error', String(e && e.message || e)); if (isConfigOnlyErr(e)) { viewNoTable = true; break; } }
     if (!tables.length) await sleep(1000 + i * 500);
   }
   dlog('base.tables', { token, count: tables.length });
@@ -3093,7 +3116,11 @@ function renderPackInfo() {
   $('packBadge').classList.toggle('hide', !stale);
   $('tabPack').classList.toggle('warn', stale);
   const pm = cfg.photo && metaOf(cfg.photo);
-  if (pm && pm.type === FT('Attachment', 17)) status += `<div style="margin-top:6px">📷 Cột gói chỉ chứa <b>tên tệp ảnh</b> để khối biết khi ảnh đổi; ảnh được đọc trực tiếp từ cột <b>${esc(pm.name)}</b>, nên người xem cần có quyền xem bảng nhân sự.</div>`;
+  if (pm && pm.type === FT('Attachment', 17)) {
+    const st = staleThumbs(cfg);
+    status += `<div style="margin-top:6px">📷 Người xem dashboard không đọc được tệp đính kèm, nên ảnh được <b>thu nhỏ và lưu kèm khối</b> mỗi lần bấm <b>Lưu cấu hình</b>. Ảnh thay đổi trong bảng chỉ lên dashboard sau lần lưu tiếp theo.</div>`;
+    if (st && (st.changed || st.added)) status += `<div class="bad" style="margin-top:4px">⚠ Từ lần lưu ${new Date(st.at).toLocaleString('vi-VN')}: ${st.changed ? st.changed + ' người đổi ảnh' : ''}${st.changed && st.added ? ', ' : ''}${st.added ? st.added + ' người mới có ảnh' : ''}. Bấm Lưu cấu hình để cập nhật ảnh trên dashboard.</div>`;
+  }
   const tbl = ($('selTable').selectedOptions[0] || {}).text || 'nhân sự';
   const col = cfg.packField ? (metaOf(cfg.packField) || {}).name : '';
   const when = packCheckedAt ? ` · kiểm tra lúc ${new Date(packCheckedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : '';
@@ -3213,9 +3240,9 @@ async function loadPacked(saved) {
   snapMode = true; packMode = true; packSaved = saved; currentTable = null;
   fieldMetas = [...order.map(k => ({ id: 'p_' + k, name: names[k] || k, type: 1 })), ...extra.map(e => ({ id: e.id, name: e.name, type: 1 }))];
   detailSel = Array.isArray(saved.detailFields) ? saved.detailFields : extra.map(e => e.id);
-  if (saved.photo && extra.some(e => e.id === saved.photo)) { fillSelect($('selPhoto'), fieldMetas, true); $('selPhoto').value = saved.photo; }
   for (const id of ['selName', 'selParent']) fillSelect($(id), fieldMetas, false);
   for (const id of ['selCode', 'selAlias', 'selTitle', 'selDept', 'selTeam', 'selLevel', 'selStatus', 'selFilterField', 'selPhoto', 'selDeptMgr', 'selEmp']) fillSelect($(id), fieldMetas, true);
+  if (saved.photo && extra.some(e => e.id === saved.photo)) $('selPhoto').value = saved.photo;
   const map = { name: 'selName', parent: 'selParent', code: 'selCode', alias: 'selAlias', title: 'selTitle', dept: 'selDept', team: 'selTeam',
     status: 'selStatus', filterField: 'selFilterField', deptMgr: 'selDeptMgr', emp: 'selEmp' };
   for (const [k, id] of Object.entries(map)) $(id).value = saved[k] && order.includes(k) ? 'p_' + k : '';
@@ -3259,6 +3286,7 @@ async function saveDashboardConfig() {
         r = await d.saveConfig(payload);
       }
       dlog('save.pack.size', JSON.stringify(payload).length);
+      dashSaved = payload;
       dlog('save.pack.ok', { result: r, cond });
       if (r !== false) {
         try { const pv = await withTimeout(d.getPreviewData(cond), 8000); dlog('save.pack.preview', { rows: Array.isArray(pv) ? parsePacked(pv, PACK_KEYS).length : null }); }
@@ -3509,7 +3537,6 @@ async function init() {
   $('inpBgColor').oninput = applyBg;
   $('rngBgAlpha').oninput = applyBg;
   $('chkGrid').onchange = applyBg;
-  $('btnDiagView').onclick = () => showDiagnostics2().catch(e => toast('Lỗi chẩn đoán: ' + e.message, 6000));
   $('btnDiag').onclick = () => showDiagnostics2().catch(e => toast('Lỗi chẩn đoán: ' + e.message, 6000));
 
   if (dashMode) {
