@@ -815,7 +815,7 @@ const SourceType = SDK.SourceType || { ALL: 'ALL' };
 
 const $ = (id) => document.getElementById(id);
 const CONFIG_KEY = 'orgchart-config-v4';
-const APP_VERSION = '2026-11-09.5';
+const APP_VERSION = '2026-11-09.6';
 const diagLog = [];   // nhật ký các bước làm việc với dashboard
 const scrubThumbs = (v) => { try { return v && typeof v === 'object' ? JSON.parse(JSON.stringify(v, (k, x) => (k === 'photoThumbs' && x && x.d ? { n: Object.keys(x.d).length, at: x.at } : x))) : v; } catch (e) { return v; } };
 const dlog = (step, info) => { info = scrubThumbs(info); diagLog.push({ t: new Date().toISOString().slice(11, 19), step, info }); if (diagLog.length > 60) diagLog.shift(); };
@@ -832,7 +832,7 @@ let deptColors = new Map();
 let unsubscribers = [];
 let firstRender = true;
 let photoUrls = new Map();   // recordId -> link ảnh
-let photoSeq = 0;
+let photoSeq = 0, photoLoading = null;
 let srcBase = bitable.base;   // base đang đọc dữ liệu
 let srcToken = '';            // '' = base hiện tại
 let dashMode = null;          // null = thanh bên; 'Create' | 'Config' | 'View' | 'FullScreen' = khối dashboard
@@ -2700,7 +2700,7 @@ async function draw() {
   render();
   updateStats(cfg);
   showDiagnostics();
-  loadPhotos(cfg, filteredRows(cfg)).then(() => { if (tree && photoUrls.size) render(); updatePhotoChip(); })
+  (photoLoading = loadPhotos(cfg, filteredRows(cfg))).then(() => { if (tree && photoUrls.size) render(); updatePhotoChip(); })
     .catch(() => toast('Không đọc được cột ảnh. Kiểm tra lại cột "Ảnh nhân viên" trong Cấu hình.', 5000))
     .finally(markRendered);
   $('config').classList.remove('open');
@@ -3126,33 +3126,69 @@ function renderPackInfo() {
   const when = packCheckedAt ? ` · kiểm tra lúc ${new Date(packCheckedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : '';
   el.innerHTML = `${status}
     <ol class="pack-steps">
-      <li>Bấm <b>Sao chép công thức</b>.</li>
+      <li>Bấm <b>Sao chép công thức &amp; mở bảng</b> — công thức được chép sẵn, bảng nguồn mở ở tab mới.</li>
       <li>Mở bảng <b>${esc(tbl)}</b>, sửa cột <b>${esc(col || 'Dữ liệu sơ đồ')}</b> → dán công thức → Lưu.</li>
       <li>Quay lại đây bấm <b>Kiểm tra lại</b> (khối cũng tự kiểm tra khi bạn quay lại).</li>
     </ol>
     <code id="packCode">${esc(fx)}</code>
     <div class="pack-acts">
-      <button class="btn" id="btnCopyPack" type="button">Sao chép công thức</button>
+      <button class="btn" id="btnCopyPack" type="button">Sao chép công thức &amp; mở bảng</button>
+      <a class="btn${srcUrl ? '' : ' hide'}" id="packOpen" href="${esc(srcUrl || '#')}" target="_blank" rel="noopener">Mở bảng nguồn ↗</a>
       ${cfg.packField ? '<button class="btn" id="btnRecheck" type="button">Kiểm tra lại</button>' : ''}
       <span style="align-self:center;font-size:11px;color:var(--faint)">${when}</span>
     </div>`;
-  $('btnCopyPack').onclick = () => copyPackFormula(fx);
+  $('btnCopyPack').onclick = () => copyPackFormula(fx, true);
+  prepareSourceUrl(cfg);
   if ($('btnRecheck')) $('btnRecheck').onclick = () => recheckPack(false);
 }
-async function copyPackFormula(fx) {
+/* Sao chép chữ vào bộ nhớ máy. Gọi ngay trong sự kiện bấm (không await trước đó) để trình duyệt cho phép. */
+function copyText(text) {
+  let ok = false;
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none';
+  document.body.appendChild(ta);
+  ta.select(); ta.setSelectionRange(0, text.length);
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+  if (!ok && navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+  return ok;
+}
+/* Link mở bảng nguồn (tính trước, để bấm là mở được ngay — trình duyệt chặn cửa sổ mở sau khi chờ) */
+let srcUrl = '', srcUrlKey = '';
+async function prepareSourceUrl(cfg) {
+  const key = [srcToken, cfg.tableId, cfg.viewId, cfg.packField].join('|');
+  if (key === srcUrlKey) return srcUrl;
+  srcUrlKey = key; srcUrl = '';
+  try {
+    if (bitable.bridge && bitable.bridge.getBitableUrl) {
+      let u = await withTimeout(bitable.bridge.getBitableUrl({ tableId: cfg.tableId, viewId: cfg.viewId || undefined, fieldId: cfg.packField || undefined }), 4000);
+      if (u && srcToken) u = u.replace(/\/base\/[A-Za-z0-9]+/, '/base/' + srcToken);
+      srcUrl = u || '';
+    }
+  } catch (e) { dlog('srcUrl.error', String(e && e.message || e)); }
+  if (!srcUrl && srcToken) srcUrl = `https://www.larksuite.com/base/${srcToken}?table=${cfg.tableId}${cfg.viewId ? '&view=' + cfg.viewId : ''}`;
+  const a = $('packOpen'); if (a) { a.href = srcUrl || '#'; a.classList.toggle('hide', !srcUrl); }
+  return srcUrl;
+}
+function copyPackFormula(fx, open) {
   fx = fx || packFormula(readConfig());
-  try { await navigator.clipboard.writeText(fx); toast('Đã sao chép công thức. Dán vào cột gói trong bảng rồi bấm Kiểm tra lại.', 4500); }
-  catch (e) { const c = $('packCode'); if (c) { const r = document.createRange(); r.selectNodeContents(c); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); } toast('Đã bôi đen công thức, nhấn Ctrl+C để sao chép', 4500); }
+  const ok = copyText(fx);
+  let opened = false;
+  if (open && srcUrl) { try { opened = !!window.open(srcUrl, '_blank', 'noopener'); } catch (e) {} }
+  if (!ok) { const c = $('packCode'); if (c) { const r = document.createRange(); r.selectNodeContents(c); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); } }
+  toast(ok ? (opened ? 'Đã sao chép công thức và mở bảng nguồn. Dán vào cột gói → Lưu, rồi quay lại bấm Kiểm tra lại.' : 'Đã sao chép công thức. Dán vào cột gói trong bảng rồi bấm Kiểm tra lại.')
+    : 'Trình duyệt không cho tự sao chép — công thức đã được bôi đen, nhấn Ctrl+C.', 6000);
 }
 /* Đưa người dùng tới phần công thức cột gói */
 function goPackFormula() {
+  copyPackFormula(null, true);
   setCfgTab('pack');
   requestAnimationFrame(() => {
     const c = $('packCode');
     if (!c) return;
     c.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
     c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash');
-    copyPackFormula();
   });
 }
 /* Sửa công thức cột không làm Lark báo "dòng thay đổi" → phải tự đọc lại bảng để kiểm tra */
@@ -3270,10 +3306,18 @@ async function saveDashboardConfig() {
     const packExtra = packExtras(cfg).map(m => ({ id: m.id, name: m.name, att: m.type === FT('Attachment', 17) || undefined }));
     const payload = { customConfig: { ...cfg, packOrder: PACK_KEYS, packNames, packExtra, saveMode: 'pack' }, dataConditions: [cond] };
     const stale = packMissing(cfg);
-    if (cfg.photo && photoUrls.size) {
+    if (cfg.photo) {
+      // Ảnh tải chậm (~20–30 giây với vài trăm người): bấm Lưu sớm thì phải chờ, nếu không khối sẽ lưu thiếu ảnh
+      if (!photoUrls.size || photoLoading) {
+        toast('Đang tải ảnh nhân sự trước khi lưu…', 30000);
+        try { if (photoLoading) await photoLoading; if (!photoUrls.size) await loadPhotos(cfg, filteredRows(cfg)); } catch (e) {}
+      }
       toast('Đang thu nhỏ ảnh nhân sự để lưu kèm khối…', 8000);
       try { const th = await buildPhotoThumbs(cfg, filteredRows(cfg)); if (th) payload.customConfig.photoThumbs = th; }
       catch (e) { dlog('photo.thumbs.error', String(e && e.message || e)); }
+      // Không thu được ảnh mới thì giữ ảnh của lần lưu trước, không xoá trắng
+      const prev = dashSaved && dashSaved.customConfig && dashSaved.customConfig.photoThumbs;
+      if (!payload.customConfig.photoThumbs && prev) { payload.customConfig.photoThumbs = prev; thumbInfo = (thumbInfo ? thumbInfo + ' · ' : '') + 'giữ ảnh của lần lưu trước'; }
     }
     try {
       const d = await dashFor(srcToken);
@@ -3292,7 +3336,9 @@ async function saveDashboardConfig() {
         try { const pv = await withTimeout(d.getPreviewData(cond), 8000); dlog('save.pack.preview', { rows: Array.isArray(pv) ? parsePacked(pv, PACK_KEYS).length : null }); }
         catch (e) { dlog('save.pack.preview.error', String(e && e.message || e)); }
         await draw();
-        toast(stale.length ? `Đã lưu, nhưng cột gói chưa có: ${stale.map(m => m.name).join(', ')}. Bấm "Cập nhật cột" để người xem thấy đủ thông tin.` : 'Đã lưu. Khối sẽ tự cập nhật khi dữ liệu nhân sự thay đổi.', stale.length ? 8000 : 5000);
+        const nThumb = payload.customConfig.photoThumbs ? Object.keys(payload.customConfig.photoThumbs.d || {}).length : 0;
+        if (cfg.photo && !nThumb) { toast('Đã lưu, nhưng KHÔNG kèm được ảnh nhân sự — người xem dashboard sẽ không thấy ảnh. Mở Chẩn đoán (Ctrl+Shift+D) xem mục photoThumbs.', 9000); return; }
+        toast(stale.length ? `Đã lưu, nhưng cột gói chưa có: ${stale.map(m => m.name).join(', ')}. Bấm "Cập nhật cột" để người xem thấy đủ thông tin.` : `Đã lưu${nThumb ? ` kèm ${nThumb} ảnh` : ''}. Khối sẽ tự cập nhật khi dữ liệu nhân sự thay đổi.`, stale.length ? 8000 : 5000);
         return;
       }
     } catch (e) {
@@ -3385,10 +3431,10 @@ async function showDiagnostics2() {
   $('mPreview').innerHTML = `<pre style="margin:0;padding:10px;font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-all;user-select:text">${esc(text)}</pre>`;
   const a = $('mDownload');
   a.style.display = 'inline-flex'; a.textContent = 'Sao chép'; a.removeAttribute('href');
-  a.onclick = async (e) => {
+  a.onclick = (e) => {
     e.preventDefault();
-    try { await navigator.clipboard.writeText(text); toast('Đã sao chép thông tin chẩn đoán'); }
-    catch (err) { const r = document.createRange(); r.selectNodeContents($('mPreview').querySelector('pre')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('Đã bôi đen, nhấn Ctrl+C để sao chép'); }
+    if (copyText(text)) { toast('Đã sao chép thông tin chẩn đoán — dán (Ctrl+V) để gửi'); return; }
+    const r = document.createRange(); r.selectNodeContents($('mPreview').querySelector('pre')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('Trình duyệt không cho tự sao chép — đã bôi đen, nhấn Ctrl+C');
   };
 }
 $('mClose').addEventListener('click', () => { const a = $('mDownload'); a.textContent = 'Tải xuống'; a.onclick = null; a.style.display = ''; });
