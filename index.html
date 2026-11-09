@@ -247,31 +247,47 @@
   .pack-info .ok { color:#00875a; font-weight:600; } .pack-info .bad { color:#b42318; font-weight:600; }
   .slot-list { display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:4px; }
   .slot-list .check { font-size:12px; }
-  /* Các mục cấu hình */
-  #config { counter-reset:sec; overflow-x:hidden; }
-  .cfg-title span { display:block; font-weight:400; color:var(--muted); font-size:11.5px; margin-top:2px; }
-  .cfg-sec { border:1px solid var(--border); border-radius:10px; background:var(--card); margin-bottom:10px; }
-  .cfg-sec:not(.hide) { counter-increment:sec; }
-  .cfg-sec > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px; padding:10px 12px; font-size:12.5px; font-weight:600; color:var(--text); user-select:none; }
-  .cfg-sec > summary::-webkit-details-marker { display:none; }
-  .cfg-sec > summary::after { content:''; margin-left:auto; width:7px; height:7px; border-right:1.5px solid var(--faint); border-bottom:1.5px solid var(--faint); transform:rotate(-45deg); transition:transform .15s; }
-  .cfg-sec[open] > summary::after { transform:rotate(45deg); }
-  .cfg-sec[open] > summary { border-bottom:1px solid var(--border); }
-  .cfg-sec > :not(summary) { margin-left:12px; margin-right:12px; }
-  .cfg-sec > :last-child { margin-bottom:12px; }
-  .cfg-sec > .grid { margin-top:12px; }
-  .cfg-n { width:20px; height:20px; border-radius:50%; background:var(--brand-soft); color:var(--brand); font-size:11px; display:grid; place-items:center; flex:none; }
-  .cfg-n::before { content:counter(sec); }
+  /* Cấu hình chia tab */
+  #config { --cp:12px; overflow-x:hidden; }
+  body.dash-config #config { --cp:14px; }
+  .cfg-head { position:sticky; top:calc(var(--cp) * -1); z-index:3; background:var(--panel); margin:calc(var(--cp) * -1) calc(var(--cp) * -1) 12px; padding:var(--cp) var(--cp) 0; }
+  .cfg-head .cfg-title { margin-bottom:8px; }
+  .cfg-tabs { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); border-bottom:1px solid var(--border); margin:0 calc(var(--cp) * -1); padding:0 calc(var(--cp) - 4px); }
+  .cfg-tabs button { position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; border:0; background:none; padding:7px 1px 8px; font-size:11px; font-weight:500; color:var(--muted); cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; margin-bottom:-1px; transition:color var(--dur-1, .14s), border-color var(--dur-1, .14s); }
+  .cfg-tabs button.hide { display:none; }
+  .cfg-tabs button svg { width:17px; height:17px; }
+  .cfg-tabs button:hover { color:var(--text); }
+  .cfg-tabs button.on { color:var(--brand); border-bottom-color:var(--brand); }
+  .cfg-tabs button:focus-visible { outline:2px solid var(--brand); outline-offset:-2px; border-radius:6px; }
+  .ct-badge { position:absolute; top:2px; left:calc(50% + 6px); min-width:17px; height:16px; padding:0 4px; border-radius:8px; background:var(--brand-soft); color:var(--brand); font-size:10px; font-weight:600; line-height:16px; }
+  .ct-badge:empty { display:none; }
+  .ct-dot { position:absolute; top:4px; left:calc(50% + 6px); width:8px; height:8px; border-radius:50%; background:#f04438; box-shadow:0 0 0 2px var(--panel); display:none; }
+  #tabPack.warn .ct-dot { display:block; }
+  #tabPack.warn { color:#d92d20; }
+  .cfg-pane:not(.on) { display:none !important; }
+  #config:not(:has(.cfg-pane.on)) .cfg-pane[data-pane="data"] { display:block !important; }
+  .cfg-pane.on { animation:mFadeUp var(--dur-2, .22s) var(--ease-out, ease-out); }
+  .cfg-sec { border:1px solid var(--border); border-radius:10px; background:var(--card); padding:12px; margin-bottom:10px; }
+  .cfg-h { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 10px; font-size:12.5px; font-weight:600; color:var(--text); }
+  .cfg-h small { flex-basis:100%; font-size:11px; font-weight:400; color:var(--muted); }
+  .cfg-sec > .grid + .checks { margin-top:12px; }
   .cfg-badge { font-size:11px; font-weight:500; color:var(--muted); background:var(--bg); border-radius:999px; padding:1px 8px; }
   .cfg-badge.warn { color:#b42318; background:#fdeaea; }
-  .cfg-sec .pack-box { margin-top:12px; }
-  .pack-lead { font-size:11.5px; color:var(--muted); line-height:1.5; margin-bottom:8px; font-weight:400; }
+  .cfg-actions { position:sticky; bottom:calc(var(--cp) * -1); z-index:3; flex-wrap:wrap; align-items:center; background:var(--panel); border-top:1px solid var(--border); margin:12px calc(var(--cp) * -1) 0; padding:10px var(--cp); }
+  body.dash-config .cfg-actions { margin-bottom:calc(var(--cp) * -1); }
+  .cfg-ver { margin-left:auto; font-size:10.5px; color:var(--faint); }
+  .pack-box .field { margin:8px 0 2px; }
+  .pack-lead { font-size:11.5px; color:var(--muted); line-height:1.5; font-weight:400; }
+  .pack-steps { margin:8px 0 6px; padding-left:18px; color:var(--text); line-height:1.6; }
+  .pack-acts { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .pack-info code.flash { animation:codeFlash 1.2s ease-out; }
+  @keyframes codeFlash { 0%, 40% { box-shadow:0 0 0 3px var(--brand); background:var(--brand-soft); } }
   /* Cột gói chưa cập nhật → làm nổi bật */
   .cfg-sec.need-update { border-color:#f04438; box-shadow:0 0 0 3px rgba(240,68,56,.14); }
   .cfg-sec.need-update .pack-box { border-color:#f04438; background:#fff4f3; }
-  .cfg-sec.need-update #btnMakePack { background:#d92d20; border-color:#d92d20; color:#fff; animation:packPulse 1.6s ease-in-out 3; }
+  .cfg-sec.need-update #btnCopyPack { background:#d92d20; border-color:#d92d20; color:#fff; animation:packPulse 1.6s ease-in-out 3; }
   @keyframes packPulse { 50% { box-shadow:0 0 0 5px rgba(217,45,32,.22); } }
-  @media (prefers-reduced-motion: reduce) { .cfg-sec.need-update #btnMakePack { animation:none; } }
+  @media (prefers-reduced-motion: reduce) { .cfg-sec.need-update #btnCopyPack { animation:none; } }
   :root[data-theme="dark"] .cfg-sec.need-update .pack-box { background:#3d1d1f; }
   /* Chọn thông tin hiển thị khi xem chi tiết */
   .detail-box { margin-top:10px; font-size:12px; }
@@ -599,82 +615,130 @@
   </div>
 
   <div id="config">
-    <p class="cfg-title">Cấu hình sơ đồ <span>Các cột đã được tự chọn sẵn theo tên, chỉ cần kiểm tra lại</span></p>
+    <div class="cfg-head">
+      <p class="cfg-title">Cấu hình sơ đồ</p>
+      <nav class="cfg-tabs" role="tablist" aria-label="Các mục cấu hình">
+        <button type="button" role="tab" data-ctab="data" title="Bảng, view, lọc dữ liệu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>Dữ liệu</button>
+        <button type="button" role="tab" data-ctab="chart" title="Các cột dựng sơ đồ và bố cục"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></svg>Sơ đồ</button>
+        <button type="button" role="tab" data-ctab="detail" title="Thông tin hiện khi xem chi tiết"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17a3.5 3.5 0 0 1 7 0M15 9h3M15 13h3"/></svg>Chi tiết<span class="ct-badge" id="tabDetailN"></span></button>
+        <button type="button" role="tab" data-ctab="pack" class="m-dash hide" id="tabPack" title="Cột gói để khối tự cập nhật"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Cột gói<span class="ct-dot"></span></button>
+        <button type="button" role="tab" data-ctab="look" title="Tiêu đề, nền, kiểu ảnh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.6 0-.5-.2-.8-.4-1.2-.3-.4-.4-.7-.4-1.2 0-.9.7-1.5 1.6-1.5H16a5 5 0 0 0 5-5c0-4.1-4-7.5-9-7.5Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>Giao diện</button>
+      </nav>
+    </div>
 
-    <details class="cfg-sec" open>
-      <summary><span class="cfg-n"></span>Nguồn dữ liệu</summary>
-      <div class="grid">
-        <label class="field full hide" id="fieldBase">Nguồn dữ liệu (Base)<select id="selBase"></select></label>
-        <label class="field">Bảng dữ liệu<select id="selTable"></select></label>
-        <label class="field">Lấy dữ liệu theo view<select id="selView"><option value="">Tất cả dòng trong bảng</option></select></label>
-        <label class="field">Cột tình trạng làm việc<select id="selStatus"></select></label>
-        <label class="field">Lọc theo cột<select id="selFilterField"></select></label>
-        <label class="field">Giá trị lọc<select id="selFilterValue"><option value="">Tất cả</option></select></label>
-      </div>
-      <label class="check" style="margin-top:10px"><input type="checkbox" id="chkActive" checked> Ẩn người đã nghỉ việc</label>
-      <div id="inactiveBox" class="inactive-box hide"></div>
-    </details>
-
-    <details class="cfg-sec" open>
-      <summary><span class="cfg-n"></span>Cột dựng sơ đồ</summary>
-      <div class="grid">
-        <label class="field full">Cách dựng sơ đồ
-          <select id="selMode">
-            <option value="structure">Theo cơ cấu: Lãnh đạo → Phòng ban → Nhóm (khuyến nghị)</option>
-            <option value="parent">Theo đúng cột "Quản lý trực tiếp"</option>
-            <option value="group">Theo Phòng ban và Chức danh (khi chưa có cột quản lý)</option>
-          </select>
-        </label>
-        <label class="field">Họ và tên<select id="selName"></select></label>
-        <label class="field m-parent">Quản lý trực tiếp<select id="selParent"></select></label>
-        <label class="field m-struct">Lãnh đạo phụ trách phòng (Quản lý bộ phận)<select id="selDeptMgr"></select></label>
-        <label class="field m-parent">Mã NV<select id="selCode"></select></label>
-        <label class="field m-parent">Tên khác để khớp quản lý<select id="selAlias"></select></label>
-        <label class="field">Chức danh<select id="selTitle"></select></label>
-        <label class="field">Phòng ban<select id="selDept"></select></label>
-        <label class="field">Nhóm / Tổ<select id="selTeam"></select></label>
-        <label class="field">Cấp bậc (số, để sắp xếp)<select id="selLevel"></select></label>
-        <label class="field">Trạng thái hợp đồng (Chính thức / Thử việc / Thực tập)<select id="selEmp"></select></label>
-        <label class="field">Ảnh nhân viên<select id="selPhoto"></select></label>
-      </div>
-    </details>
-
-    <details class="cfg-sec" open>
-      <summary><span class="cfg-n"></span>Thông tin khi xem chi tiết <span class="cfg-badge" id="detailCount"></span></summary>
-      <div id="detailBox" class="detail-box"></div>
-    </details>
-
-    <details class="cfg-sec m-dash hide" open id="packSec">
-      <summary><span class="cfg-n"></span>Tự cập nhật trên dashboard <span class="cfg-badge warn hide" id="packBadge">Cần cập nhật</span></summary>
-      <div class="pack-box">
-        <div class="pack-lead">Gói các cột cần hiển thị vào một cột công thức để khối tự cập nhật khi dữ liệu thay đổi (khuyến nghị).</div>
-        <div class="bg-row">
-          <select id="selPack" style="flex:1"><option value="">— Chưa dùng (khối lưu bản chụp dữ liệu) —</option></select>
-          <button class="btn" id="btnMakePack" type="button">Tạo / cập nhật cột</button>
+    <div class="cfg-pane" data-pane="data" role="tabpanel">
+      <section class="cfg-sec">
+        <h5 class="cfg-h">Nguồn dữ liệu</h5>
+        <div class="grid">
+          <label class="field full hide" id="fieldBase">Nguồn dữ liệu (Base)<select id="selBase"></select></label>
+          <label class="field">Bảng dữ liệu<select id="selTable"></select></label>
+          <label class="field">Lấy dữ liệu theo view<select id="selView"><option value="">Tất cả dòng trong bảng</option></select></label>
         </div>
-        <div class="pack-info" id="packInfo"></div>
-      </div>
-    </details>
+      </section>
+      <section class="cfg-sec">
+        <h5 class="cfg-h">Lọc nhân sự</h5>
+        <div class="grid">
+          <label class="field">Cột tình trạng làm việc<select id="selStatus"></select></label>
+          <label class="field">Lọc theo cột<select id="selFilterField"></select></label>
+          <label class="field">Giá trị lọc<select id="selFilterValue"><option value="">Tất cả</option></select></label>
+        </div>
+        <label class="check" style="margin-top:10px"><input type="checkbox" id="chkActive" checked> Ẩn người đã nghỉ việc</label>
+        <div id="inactiveBox" class="inactive-box hide"></div>
+      </section>
+    </div>
 
-    <details class="cfg-sec" open>
-      <summary><span class="cfg-n"></span>Hiển thị</summary>
-      <div class="grid">
-        <label class="field full">Tiêu đề khối / sơ đồ<input id="inpTitle" type="text" maxlength="80" placeholder="VD: Sơ đồ tổ chức Tiến Lợi Group"></label>
-        <label class="field m-struct">Chế độ xem mặc định<select id="selLayout">
-          <option value="staff">Sơ đồ cơ cấu nhân sự (chi tiết)</option>
-          <option value="org">Sơ đồ cơ cấu tổ chức (phòng ban)</option>
-        </select></label>
-        <label class="field m-struct">Các phòng ban đặt dưới<select id="selDeptUnder">
-          <option value="lowest">Lãnh đạo cấp thấp nhất (vd Phó GĐ)</option>
-          <option value="manager">Lãnh đạo là quản lý trực tiếp của trưởng phòng</option>
-        </select></label>
-        <label class="field">Kiểu ảnh<select id="selShape">
-          <option value="circle">Ảnh tròn</option>
-          <option value="rect">Ảnh thẻ chữ nhật (3x4)</option>
-        </select></label>
-        <div class="field full">Nền sơ đồ
+    <div class="cfg-pane" data-pane="chart" role="tabpanel">
+      <section class="cfg-sec">
+        <h5 class="cfg-h">Cột dựng sơ đồ <small>Đã tự chọn theo tên cột, chỉ cần kiểm tra lại</small></h5>
+        <div class="grid">
+          <label class="field full">Cách dựng sơ đồ
+            <select id="selMode">
+              <option value="structure">Theo cơ cấu: Lãnh đạo → Phòng ban → Nhóm (khuyến nghị)</option>
+              <option value="parent">Theo đúng cột "Quản lý trực tiếp"</option>
+              <option value="group">Theo Phòng ban và Chức danh (khi chưa có cột quản lý)</option>
+            </select>
+          </label>
+          <label class="field">Họ và tên<select id="selName"></select></label>
+          <label class="field m-parent">Quản lý trực tiếp<select id="selParent"></select></label>
+          <label class="field m-struct">Lãnh đạo phụ trách phòng (Quản lý bộ phận)<select id="selDeptMgr"></select></label>
+          <label class="field m-parent">Mã NV<select id="selCode"></select></label>
+          <label class="field m-parent">Tên khác để khớp quản lý<select id="selAlias"></select></label>
+          <label class="field">Chức danh<select id="selTitle"></select></label>
+          <label class="field">Phòng ban<select id="selDept"></select></label>
+          <label class="field">Nhóm / Tổ<select id="selTeam"></select></label>
+          <label class="field">Cấp bậc (số, để sắp xếp)<select id="selLevel"></select></label>
+          <label class="field">Trạng thái hợp đồng (Chính thức / Thử việc / Thực tập)<select id="selEmp"></select></label>
+          <label class="field">Ảnh nhân viên<select id="selPhoto"></select></label>
+        </div>
+      </section>
+      <section class="cfg-sec">
+        <h5 class="cfg-h">Bố cục</h5>
+        <div class="grid">
+          <label class="field m-struct">Chế độ xem mặc định<select id="selLayout">
+            <option value="staff">Sơ đồ cơ cấu nhân sự (chi tiết)</option>
+            <option value="org">Sơ đồ cơ cấu tổ chức (phòng ban)</option>
+          </select></label>
+          <label class="field m-struct">Các phòng ban đặt dưới<select id="selDeptUnder">
+            <option value="lowest">Lãnh đạo cấp thấp nhất (vd Phó GĐ)</option>
+            <option value="manager">Lãnh đạo là quản lý trực tiếp của trưởng phòng</option>
+          </select></label>
+        </div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="chkCompact" checked> Xếp nhân viên cấp cuối thành cột dọc</label>
+          <label class="check m-struct"><input type="checkbox" id="chkOps" checked> Hiện nhãn "QL" khi người duyệt phép khác cấp trên trên sơ đồ</label>
+          <div class="field full m-struct slots">Luôn hiện ô vị trí (kể cả khi chưa có người)
+            <div class="slot-list">
+              <label class="check"><input type="checkbox" data-slot="lead" checked> Chủ tịch / Giám đốc / Phó GĐ</label>
+              <label class="check"><input type="checkbox" data-slot="tp" checked> Trưởng phòng</label>
+              <label class="check"><input type="checkbox" data-slot="pp" checked> Phó phòng</label>
+              <label class="check"><input type="checkbox" data-slot="team" checked> Tổ trưởng / Quản lý / Trưởng nhóm</label>
+              <label class="check"><input type="checkbox" data-slot="cv"> Chuyên viên</label>
+              <label class="check"><input type="checkbox" data-slot="nv"> Nhân viên</label>
+              <label class="check"><input type="checkbox" data-slot="tt"> Thực tập</label>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="cfg-pane" data-pane="detail" role="tabpanel">
+      <section class="cfg-sec">
+        <h5 class="cfg-h">Thông tin khi xem chi tiết <span class="cfg-badge" id="detailCount"></span></h5>
+        <div id="detailBox" class="detail-box"></div>
+      </section>
+    </div>
+
+    <div class="cfg-pane m-dash hide" data-pane="pack" id="packSec" role="tabpanel">
+      <section class="cfg-sec" id="packSecBox">
+        <h5 class="cfg-h">Cột gói dữ liệu <span class="cfg-badge warn hide" id="packBadge">Cần cập nhật</span></h5>
+        <div class="pack-box">
+          <div class="pack-lead">Gói các cột cần hiển thị vào <b>một cột Công thức</b> trong bảng nguồn để khối tự cập nhật khi dữ liệu thay đổi.</div>
+          <label class="field">Cột gói<select id="selPack"><option value="">— Chưa dùng (khối lưu bản chụp dữ liệu) —</option></select></label>
+          <div class="pack-info" id="packInfo"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="cfg-pane" data-pane="look" role="tabpanel">
+      <section class="cfg-sec">
+        <h5 class="cfg-h">Tiêu đề và ảnh</h5>
+        <div class="grid">
+          <label class="field full">Tiêu đề khối / sơ đồ<input id="inpTitle" type="text" maxlength="80" placeholder="VD: Sơ đồ tổ chức Tiến Lợi Group"></label>
+          <label class="field">Kiểu ảnh<select id="selShape">
+            <option value="circle">Ảnh tròn</option>
+            <option value="rect">Ảnh thẻ chữ nhật (3x4)</option>
+          </select></label>
+        </div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="chkCode" checked> Hiện mã nhân viên trên thẻ</label>
+          <label class="check"><input type="checkbox" id="chkEmpAll"> Hiện cả nhãn "Chính thức" (mặc định chỉ hiện Thử việc / Thực tập…)</label>
+        </div>
+      </section>
+      <section class="cfg-sec">
+        <h5 class="cfg-h">Nền sơ đồ</h5>
+        <div class="field full">
           <div class="bg-row">
-            <select id="selBg" style="flex:1">
+            <select id="selBg" style="flex:1" aria-label="Nền sơ đồ">
               <option value="auto">Theo giao diện Lark (mặc định)</option>
               <option value="transparent">Trong suốt (nhìn thấy nền dashboard)</option>
               <option value="#ffffff">Trắng</option>
@@ -694,33 +758,19 @@
             <output id="outBgAlpha">100%</output>
           </div>
         </div>
-      </div>
-      <div class="checks">
-        <label class="check"><input type="checkbox" id="chkCode" checked> Hiện mã nhân viên trên thẻ</label>
-        <label class="check"><input type="checkbox" id="chkEmpAll"> Hiện cả nhãn "Chính thức" (mặc định chỉ hiện Thử việc / Thực tập…)</label>
-        <label class="check"><input type="checkbox" id="chkGrid" checked> Hiện lưới chấm trên nền</label>
-        <label class="check m-struct"><input type="checkbox" id="chkOps" checked> Hiện nhãn "QL" khi người duyệt phép khác cấp trên trên sơ đồ</label>
-        <label class="check"><input type="checkbox" id="chkCompact" checked> Xếp nhân viên cấp cuối thành cột dọc</label>
-        <div class="field full m-struct slots">Luôn hiện ô vị trí (kể cả khi chưa có người)
-          <div class="slot-list">
-            <label class="check"><input type="checkbox" data-slot="lead" checked> Chủ tịch / Giám đốc / Phó GĐ</label>
-            <label class="check"><input type="checkbox" data-slot="tp" checked> Trưởng phòng</label>
-            <label class="check"><input type="checkbox" data-slot="pp" checked> Phó phòng</label>
-            <label class="check"><input type="checkbox" data-slot="team" checked> Tổ trưởng / Quản lý / Trưởng nhóm</label>
-            <label class="check"><input type="checkbox" data-slot="cv"> Chuyên viên</label>
-            <label class="check"><input type="checkbox" data-slot="nv"> Nhân viên</label>
-            <label class="check"><input type="checkbox" data-slot="tt"> Thực tập</label>
-          </div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="chkGrid" checked> Hiện lưới chấm trên nền</label>
         </div>
-      </div>
-    </details>
+      </section>
+    </div>
+
     <div class="cfg-actions">
       <button class="btn primary" id="btnSave">Lưu cấu hình</button>
       <button class="btn" id="btnDraw">Xem trước</button>
       <button class="btn" id="btnCloseCfg">Đóng</button>
       <button class="btn" id="btnDiag" title="Thu thập thông tin để gửi người hỗ trợ">Chẩn đoán</button>
+      <span class="cfg-ver">v<span id="appVer"></span></span>
     </div>
-    <p style="font-size:10.5px;color:var(--faint);margin:8px 0 0">Phiên bản <span id="appVer"></span></p>
     <p class="dash-hint">Bấm <b>Xem trước</b> để thử, rồi bấm <b>Lưu cấu hình</b> để lưu sơ đồ vào khối này. Mọi người xem dashboard sẽ thấy sơ đồ theo cấu hình đã lưu.</p>
   </div>
   <div id="notice"></div>
@@ -764,7 +814,7 @@ const SourceType = SDK.SourceType || { ALL: 'ALL' };
 
 const $ = (id) => document.getElementById(id);
 const CONFIG_KEY = 'orgchart-config-v4';
-const APP_VERSION = '2026-11-09.1';
+const APP_VERSION = '2026-11-09.2';
 const diagLog = [];   // nhật ký các bước làm việc với dashboard
 const dlog = (step, info) => { diagLog.push({ t: new Date().toISOString().slice(11, 19), step, info }); if (diagLog.length > 60) diagLog.shift(); };
 
@@ -1097,7 +1147,7 @@ function subscribeChanges() {
   unsubscribers = [];
   let timer;
   const later = () => { clearTimeout(timer); timer = setTimeout(() => refresh(true).catch(() => {}), 1200); };
-  for (const ev of ['onRecordAdd', 'onRecordModify', 'onRecordDelete']) {
+  for (const ev of ['onRecordAdd', 'onRecordModify', 'onRecordDelete', 'onFieldModify', 'onFieldAdd']) {
     try { if (currentTable[ev]) unsubscribers.push(currentTable[ev](later)); } catch (e) {}
   }
 }
@@ -1596,7 +1646,22 @@ function urlFromCell(v) {
 /* Ảnh ở chế độ tự cập nhật (cột gói): link ảnh của Lark là link tạm nên không gói được.
    Cột gói chỉ mang tên tệp ảnh (để Lark báo khi ảnh đổi); link ảnh được đọc lại từ bảng nguồn — chỉ 2 cột:
    cột khóa (Mã NV, không có thì Họ tên) và cột ảnh — rồi ghép với từng người theo khóa. */
-let photoInfo = '';
+let photoInfo = '', photoRetry = 0;
+/* Người xem dashboard không mở được Chẩn đoán → hiện một nút nhỏ khi ảnh không tải được */
+function updatePhotoChip() {
+  let el = $('photoChip');
+  const cfg = readConfig();
+  const show = cfg.photo && !photoUrls.size && photoInfo && records.length;
+  if (!show) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('button'); el.id = 'photoChip'; el.type = 'button'; el.className = 'btn';
+    el.style.cssText = 'height:26px;font-size:11.5px;color:#b42318;border-color:#f3b4ae;white-space:nowrap';
+    el.textContent = 'Chưa tải được ảnh';
+    el.onclick = () => showDiagnostics2().catch(() => toast(photoInfo, 8000));
+    const sp = document.querySelector('.sub .spacer'); if (sp) sp.before(el); else return;
+  }
+  el.title = photoInfo + ' — bấm để xem chẩn đoán';
+}
 async function attachmentUrls(table, field, recordId, vals) {
   let urls = [], err = '';
   try { urls = (await withTimeout(field.getAttachmentUrls(recordId), 10000)) || []; } catch (e) { err = String(e && e.message || e); }
@@ -1611,6 +1676,12 @@ async function packPhotoTable() {
   const s = packSaved;
   let base = bitable.base;
   if (s.baseToken) {
+    if (workspace.getBitableReady) {
+      for (let i = 0, ready = false; i < 12 && !ready; i++) {
+        try { ready = await withTimeout(workspace.getBitableReady(s.baseToken), 5000); } catch (e) {}
+        if (!ready) await sleep(750);
+      }
+    }
     const app = await withTimeout(workspace.getBitable(s.baseToken), 8000);
     if (!app || !app.base) throw new Error('không mở được base nguồn');
     base = app.base;
@@ -1666,7 +1737,11 @@ async function loadPhotos(cfg, rows) {
   const packAtt = packMode && packSaved && meta && (packSaved.packExtra || []).some(e => e.id === cfg.photo && e.att);
   if (packAtt) {
     try { await loadPackPhotos(cfg, rows, seq, next); }
-    catch (e) { photoInfo = 'Không đọc được ảnh: ' + String(e && e.message || e); dlog('photo.pack.error', photoInfo); }
+    catch (e) {
+      photoInfo = 'Không đọc được ảnh: ' + String(e && e.message || e); dlog('photo.pack.error', photoInfo);
+      if (seq === photoSeq && photoRetry < 3) { const t = [4000, 15000, 45000][photoRetry++]; setTimeout(() => { const c = readConfig(); loadPhotos(c, filteredRows(c)).then(() => { if (tree) render(); updatePhotoChip(); }).catch(() => {}); }, t); }
+    }
+    if (next.size) photoRetry = 0;
     if (seq === photoSeq && (next.size || !photoUrls.size)) photoUrls = next;   // lỗi tạm thời thì giữ ảnh cũ
     return;
   }
@@ -2172,6 +2247,15 @@ function extraMatches(got, want, m) {
   return false;
 }
 let packCheck = null;   // mẫu các ô lệch, hiện trong Chẩn đoán
+/* Cột chữ phải khớp đúng; cột khác (số, ngày, người, liên kết, công thức…) Lark có thể đổi định dạng khi ghép
+   vào công thức, nên chỉ cần cùng có / cùng trống. Cột tệp đính kèm không bắt buộc (chỉ để báo khi ảnh đổi). */
+const T_TEXT = () => FT('Text', 1);
+function packCellOk(got, want, m) {
+  if (got === undefined) return false;
+  if (extraMatches(got, want, m)) return true;
+  if (m && m.type === T_TEXT()) return false;
+  return !!norm(got) === !!norm(want);
+}
 /* Trả về các cột chi tiết đã chọn nhưng cột gói chưa chứa (công thức cũ) */
 function packMissing(cfg) {
   if (!dashMode || snapMode || !cfg.packField) return [];
@@ -2184,7 +2268,7 @@ function packMissing(cfg) {
     const parts = toText(r.fields[cfg.packField]).split('|');
     ex.forEach((m, i) => {
       const got = parts[PACK_KEYS.length + i], want = extraExpected(r, m);
-      if (got === undefined || !extraMatches(got, want, m)) {
+      if (m.type === FT('Attachment', 17) ? got === undefined : !packCellOk(got, want, m)) {
         bad.set(m.id, bad.get(m.id) + 1);
         const list = samples[m.name] || (samples[m.name] = []);
         if (list.length < 3) list.push({ trongCotGoi: got === undefined ? '(không có)' : got, giaTriBang: want, kieuCot: m.type });
@@ -2212,12 +2296,13 @@ function renderDetailBox() {
   const miss = packMissing(cfg), missIds = new Set(miss.map(m => m.id));
   const nPersonal = fieldMetas.filter(isPersonal).length;
   $('detailCount').textContent = cands.length ? `Đã chọn ${sel.size}/${cands.length}` : '';
+  $('tabDetailN').textContent = sel.size || '';
   if (!cands.length) { box.innerHTML = '<div class="db-note">Chưa đọc được cột nào của bảng.</div>'; return; }
   const groups = new Map();
   for (const m of cands) { const g = detailGroupOf(m); if (!groups.has(g[0])) groups.set(g[0], []); groups.get(g[0]).push(m); }
   const order = [...DETAIL_GROUPS.map(g => g[0]), DETAIL_OTHER[0]].filter(g => groups.has(g));
   box.innerHTML = `
-    ${miss.length ? `<div class="db-warn">${dic('alert')}<span><b>Cột gói chưa cập nhật</b> ${miss.length} thông tin vừa chọn: ${esc(miss.map(m => m.name).join(', '))}. Người xem dashboard chưa thấy các thông tin này.</span><button class="btn" type="button" data-db="pack">Cập nhật cột</button></div>` : ''}
+    ${miss.length ? `<div class="db-warn">${dic('alert')}<span><b>Cột gói chưa cập nhật</b> ${miss.length} thông tin vừa chọn: ${esc(miss.map(m => m.name).join(', '))}. Người xem dashboard chưa thấy các thông tin này.</span><button class="btn" type="button" data-db="pack">Lấy công thức</button></div>` : ''}
     <div class="db-acts">
       <input type="search" id="dbSearch" placeholder="Tìm cột…" aria-label="Tìm cột">
       <button class="btn" type="button" data-db="default">Mặc định</button>
@@ -2239,7 +2324,7 @@ function renderDetailBox() {
   box.querySelector('[data-db="all"]').onclick = () => setDetailSel(cands.map(m => m.id));
   box.querySelector('[data-db="none"]').onclick = () => setDetailSel([]);
   const pk = box.querySelector('[data-db="pack"]');
-  if (pk) pk.onclick = () => $('btnMakePack').click();
+  if (pk) pk.onclick = goPackFormula;
   const q = $('dbSearch');
   q.oninput = () => {
     const s = fold(q.value);
@@ -2533,7 +2618,7 @@ async function draw() {
   render();
   updateStats(cfg);
   showDiagnostics();
-  loadPhotos(cfg, filteredRows(cfg)).then(() => { if (tree && photoUrls.size) render(); })
+  loadPhotos(cfg, filteredRows(cfg)).then(() => { if (tree && photoUrls.size) render(); updatePhotoChip(); })
     .catch(() => toast('Không đọc được cột ảnh. Kiểm tra lại cột "Ảnh nhân viên" trong Cấu hình.', 5000))
     .finally(markRendered);
   $('config').classList.remove('open');
@@ -2910,42 +2995,96 @@ function fillPackSelect(keep) {
   if (keep) setIf('selPack', keep);
   else { const g = cands.find(f => /dữ\s*liệu\s*sơ\s*đồ|org\s*chart|sơ\s*đồ\s*tổ\s*chức/i.test(f.name)); if (g) sel.value = g.id; }
 }
+let packCheckedAt = 0;
+function setCfgTab(name) {
+  const btn = document.querySelector(`[data-ctab="${name}"]:not(.hide)`) || document.querySelector('[data-ctab="data"]');
+  name = btn.dataset.ctab;
+  document.querySelectorAll('[data-ctab]').forEach(b => { const on = b === btn; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
+  document.querySelectorAll('.cfg-pane').forEach(p => p.classList.toggle('on', p.dataset.pane === name));
+  try { localStorage.setItem('oc.cfgTab', name); } catch (e) {}
+}
 function renderPackInfo() {
   const el = $('packInfo');
   if (!dashMode || snapMode || !el) return;
   const cfg = readConfig();
   const fx = packFormula(cfg);
   const miss = packMissing(cfg);
+  const metaOf = (id) => fieldMetas.find(f => f.id === id);
   let status = '', stale = false;
   if (cfg.packField) {
     let ok = 0, total = 0;
     for (const r of records) {
       if (!norm(toText(r.fields[cfg.name]))) continue;
       total++;
-      if (packNorm(packHead(toText(r.fields[cfg.packField]))) === packNorm(packExpected(r, cfg))) ok++;
+      const parts = toText(r.fields[cfg.packField]).split('|');
+      if (PACK_KEYS.every((k, i) => !cfg[k] || packCellOk(parts[i], norm(toText(r.fields[cfg[k]])), metaOf(cfg[k])))) ok++;
     }
-    stale = !(total && ok === total) || miss.length > 0;
+    stale = !(total && ok >= total * 0.98) || miss.length > 0;
     status = !stale
-      ? `<div class="ok">✓ Cột hợp lệ: khớp ${ok}/${total} dòng${packExtras(cfg).length ? `, đã gồm ${packExtras(cfg).length} thông tin chi tiết` : ''}. Khối sẽ tự cập nhật khi dữ liệu thay đổi.</div>`
-      : miss.length && total && ok === total
-        ? `<div class="bad">⚠ Cột gói chưa cập nhật: còn thiếu ${miss.length} thông tin chi tiết vừa chọn (${esc(miss.map(m => m.name).join(', '))}). Bấm "Cập nhật cột", hoặc tự dán công thức bên dưới vào cột.</div>`
-        : `<div class="bad">⚠ Mới khớp ${ok}/${total} dòng. Công thức của cột chưa đúng các cột đang chọn — bấm "Cập nhật cột", hoặc tự dán công thức mẫu dưới vào cột.</div>`;
+      ? `<div class="ok">✓ Cột gói hợp lệ: khớp ${ok}/${total} dòng${packExtras(cfg).length ? `, đã gồm ${packExtras(cfg).length} thông tin chi tiết` : ''}. Khối sẽ tự cập nhật khi dữ liệu thay đổi.</div>`
+      : miss.length && total && ok >= total * 0.98
+        ? `<div class="bad">⚠ Cột gói chưa có ${miss.length} thông tin vừa chọn: ${esc(miss.map(m => m.name).join(', '))}.</div>`
+        : `<div class="bad">⚠ Cột gói mới khớp ${ok}/${total} dòng — công thức trong bảng khác với công thức mẫu bên dưới.</div>`;
   } else {
-    status = '<div>Chọn cột "Dữ liệu sơ đồ" hoặc bấm <b>Tạo cột tự động</b>. Khi dùng cột này: khối <b>tự cập nhật</b> khi dữ liệu nhân sự thay đổi, <b>không lưu bản chụp</b>, và chỉ ai có quyền xem bảng nhân sự mới xem được khối.</div>';
+    status = '<div>Chưa chọn cột gói. Tạo một cột <b>Công thức</b> tên "Dữ liệu sơ đồ" trong bảng nguồn, dán công thức bên dưới rồi chọn cột đó ở trên. Khi dùng cột gói, khối <b>tự cập nhật</b> và chỉ ai có quyền xem bảng nhân sự mới xem được khối.</div>';
   }
-  const sec = $('packSec');
-  if (stale && !sec.classList.contains('need-update')) { sec.open = true; toast(miss.length ? `Cột gói chưa có ${miss.length} thông tin chi tiết vừa chọn — cần cập nhật cột` : 'Cột gói chưa khớp các cột đang chọn — cần cập nhật cột', 5000); }
+  const sec = $('packSecBox');
+  if (stale && !sec.classList.contains('need-update')) toast(miss.length ? `Cột gói chưa có ${miss.length} thông tin vừa chọn — mở tab "Cột gói" để lấy công thức` : 'Cột gói chưa khớp — mở tab "Cột gói" để lấy công thức', 5000);
   sec.classList.toggle('need-update', stale);
   $('packBadge').classList.toggle('hide', !stale);
-  $('btnMakePack').textContent = cfg.packField ? 'Cập nhật cột' : 'Tạo cột tự động';
-  const pm = cfg.photo && fieldMetas.find(f => f.id === cfg.photo);
-  if (pm && pm.type === FT('Attachment', 17)) status += `<div style="margin-top:6px">📷 Ảnh: cột gói chỉ chứa <b>tên tệp ảnh</b> để khối biết khi ảnh thay đổi. Ảnh được đọc trực tiếp từ cột <b>${esc(pm.name)}</b> nên người xem cần có quyền xem bảng nhân sự.</div>`;
-  el.innerHTML = `${status}<div style="margin-top:6px">Công thức của cột (theo các cột đang chọn ở trên):</div><code>${esc(fx)}</code>
-    <button class="btn" id="btnCopyPack" type="button">Sao chép công thức</button>`;
-  $('btnCopyPack').onclick = async () => {
-    try { await navigator.clipboard.writeText(fx); toast('Đã sao chép công thức'); }
-    catch (e) { const r = document.createRange(); r.selectNodeContents(el.querySelector('code')); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); toast('Đã bôi đen công thức, nhấn Ctrl+C để sao chép'); }
-  };
+  $('tabPack').classList.toggle('warn', stale);
+  const pm = cfg.photo && metaOf(cfg.photo);
+  if (pm && pm.type === FT('Attachment', 17)) status += `<div style="margin-top:6px">📷 Cột gói chỉ chứa <b>tên tệp ảnh</b> để khối biết khi ảnh đổi; ảnh được đọc trực tiếp từ cột <b>${esc(pm.name)}</b>, nên người xem cần có quyền xem bảng nhân sự.</div>`;
+  const tbl = ($('selTable').selectedOptions[0] || {}).text || 'nhân sự';
+  const col = cfg.packField ? (metaOf(cfg.packField) || {}).name : '';
+  const when = packCheckedAt ? ` · kiểm tra lúc ${new Date(packCheckedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : '';
+  el.innerHTML = `${status}
+    <ol class="pack-steps">
+      <li>Bấm <b>Sao chép công thức</b>.</li>
+      <li>Mở bảng <b>${esc(tbl)}</b>, sửa cột <b>${esc(col || 'Dữ liệu sơ đồ')}</b> → dán công thức → Lưu.</li>
+      <li>Quay lại đây bấm <b>Kiểm tra lại</b> (khối cũng tự kiểm tra khi bạn quay lại).</li>
+    </ol>
+    <code id="packCode">${esc(fx)}</code>
+    <div class="pack-acts">
+      <button class="btn" id="btnCopyPack" type="button">Sao chép công thức</button>
+      ${cfg.packField ? '<button class="btn" id="btnRecheck" type="button">Kiểm tra lại</button>' : ''}
+      <span style="align-self:center;font-size:11px;color:var(--faint)">${when}</span>
+    </div>`;
+  $('btnCopyPack').onclick = () => copyPackFormula(fx);
+  if ($('btnRecheck')) $('btnRecheck').onclick = () => recheckPack(false);
+}
+async function copyPackFormula(fx) {
+  fx = fx || packFormula(readConfig());
+  try { await navigator.clipboard.writeText(fx); toast('Đã sao chép công thức. Dán vào cột gói trong bảng rồi bấm Kiểm tra lại.', 4500); }
+  catch (e) { const c = $('packCode'); if (c) { const r = document.createRange(); r.selectNodeContents(c); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); } toast('Đã bôi đen công thức, nhấn Ctrl+C để sao chép', 4500); }
+}
+/* Đưa người dùng tới phần công thức cột gói */
+function goPackFormula() {
+  setCfgTab('pack');
+  requestAnimationFrame(() => {
+    const c = $('packCode');
+    if (!c) return;
+    c.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+    c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash');
+    copyPackFormula();
+  });
+}
+/* Sửa công thức cột không làm Lark báo "dòng thay đổi" → phải tự đọc lại bảng để kiểm tra */
+let recheckBusy = false;
+async function recheckPack(silent) {
+  if (recheckBusy || !currentTable || snapMode) return;
+  if (!readConfig().packField) return;
+  recheckBusy = true;
+  const b = $('btnRecheck'); if (b) { b.disabled = true; b.textContent = 'Đang đọc lại…'; }
+  try {
+    fieldMetas = await currentTable.getFieldMetaList();
+    await reloadRecords();
+    packCheckedAt = Date.now();
+    renderDetailBox(); renderPackInfo();
+    const miss = packMissing(readConfig());
+    if (!silent) toast(miss.length || $('packSecBox').classList.contains('need-update') ? 'Cột gói vẫn chưa khớp. Xem mục "packCheck" trong Chẩn đoán để biết cột nào lệch.' : '✓ Cột gói đã khớp', 5000);
+  } catch (e) { if (!silent) toast('Không đọc lại được bảng: ' + (e && e.message || e), 5000); }
+  finally { recheckBusy = false; const b2 = $('btnRecheck'); if (b2) { b2.disabled = false; b2.textContent = 'Kiểm tra lại'; } }
 }
 async function makePackColumn() {
   if (!currentTable) throw new Error('Chưa đọc được bảng nguồn.');
@@ -3273,7 +3412,19 @@ async function init() {
     if (e.target.id !== 'selPack') renderPackInfo();
   });
   $('selPack').onchange = () => { renderDetailBox(); renderPackInfo(); };
-  $('btnMakePack').onclick = safe(makePackColumn);
+  document.querySelectorAll('[data-ctab]').forEach(b => b.onclick = () => setCfgTab(b.dataset.ctab));
+  $('config').querySelector('.cfg-tabs').addEventListener('keydown', (e) => {
+    if (!/^Arrow(Left|Right)$/.test(e.key)) return;
+    const tabs = [...document.querySelectorAll('[data-ctab]:not(.hide)')], i = tabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    const t = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; t.focus(); setCfgTab(t.dataset.ctab);
+  });
+  let lastTab = 'data'; try { lastTab = localStorage.getItem('oc.cfgTab') || 'data'; } catch (e) {}
+  setCfgTab(lastTab);
+  // Quay lại khối sau khi sửa công thức trong bảng → tự kiểm tra lại cột gói
+  const autoCheck = () => { if (document.visibilityState === 'visible' && dashMode && Date.now() - packCheckedAt > 4000) recheckPack(true); };
+  document.addEventListener('visibilitychange', autoCheck);
+  window.addEventListener('focus', autoCheck);
   document.querySelectorAll('#layoutSeg [data-layout]').forEach(b => b.onclick = () => setLayout(b.dataset.layout));
   $('selLayout').onchange = () => { layout = $('selLayout').value; layoutTouched = true; if (tree) rebuild(); };
   $('selDeptFilter').onchange = () => { $('selDeptFilter').classList.toggle('on', !!$('selDeptFilter').value); setDeptFilter($('selDeptFilter').value); };
