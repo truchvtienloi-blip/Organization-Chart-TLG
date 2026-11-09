@@ -1593,11 +1593,77 @@ function urlFromCell(v) {
   if (typeof v === 'object') return urlFromCell(v.link) || urlFromCell(v.url) || urlFromCell(v.text) || '';
   return '';
 }
+/* Ảnh ở chế độ tự cập nhật (cột gói): link ảnh của Lark là link tạm nên không gói được.
+   Cột gói chỉ mang tên tệp ảnh (để Lark báo khi ảnh đổi); link ảnh được đọc lại từ bảng nguồn — chỉ 2 cột:
+   cột khóa (Mã NV, không có thì Họ tên) và cột ảnh — rồi ghép với từng người theo khóa. */
+let photoInfo = '';
+async function packPhotoTable() {
+  const s = packSaved;
+  let base = bitable.base;
+  if (s.baseToken) {
+    const app = await withTimeout(workspace.getBitable(s.baseToken), 8000);
+    if (!app || !app.base) throw new Error('không mở được base nguồn');
+    base = app.base;
+  }
+  return withTimeout(base.getTableById(s.tableId), 8000);
+}
+async function fieldValues(table, field) {
+  if (field.getFieldValueList) {
+    const list = await withTimeout(field.getFieldValueList(), 15000);
+    if (Array.isArray(list)) return new Map(list.map(x => [x.record_id || x.recordId, x.value]));
+  }
+  const ids = await withTimeout(table.getRecordIdList(), 15000);
+  const out = new Map();
+  for (let i = 0; i < ids.length; i += 20) {
+    const chunk = ids.slice(i, i + 20);
+    const vals = await Promise.all(chunk.map(id => table.getCellValue(field.id, id).catch(() => null)));
+    chunk.forEach((id, j) => out.set(id, vals[j]));
+  }
+  return out;
+}
+async function loadPackPhotos(cfg, rows, seq, next) {
+  const s = packSaved;
+  const order = s.packOrder || PACK_KEYS;
+  const useCode = s.code && order.includes('code') && rows.some(r => r.fields.p_code);
+  const keyId = useCode ? s.code : s.name, keyP = useCode ? 'p_code' : 'p_name';
+  const table = await packPhotoTable();
+  const [keyF, picF] = await Promise.all([table.getFieldById(keyId), table.getFieldById(cfg.photo)]);
+  const [keys, pics] = await Promise.all([fieldValues(table, keyF), fieldValues(table, picF)]);
+  const recByKey = new Map();
+  for (const [rid, v] of keys) {
+    const k = fold(toText(v));
+    const pic = pics.get(rid);
+    if (k && Array.isArray(pic) && pic.length && !recByKey.has(k)) recByKey.set(k, [rid, pic]);
+  }
+  const want = [...new Set(rows.map(r => fold(r.fields[keyP] || '')).filter(k => recByKey.has(k)))];
+  const urlByKey = new Map();
+  for (let i = 0; i < want.length; i += 10) {
+    const chunk = want.slice(i, i + 10);
+    const res = await Promise.all(chunk.map(k => picF.getAttachmentUrls(recByKey.get(k)[0]).catch(() => [])));
+    if (seq !== photoSeq) return;
+    chunk.forEach((k, j) => {
+      const vals = recByKey.get(k)[1];
+      const idx = Math.max(0, vals.findIndex(a => /^image\//.test((a && a.type) || '')));
+      const u = (res[j] || [])[idx] || (res[j] || [])[0];
+      if (u) urlByKey.set(k, u);
+    });
+  }
+  for (const r of rows) { const u = urlByKey.get(fold(r.fields[keyP] || '')); if (u) next.set(r.recordId, u); }
+  photoInfo = `${next.size}/${rows.length} ảnh · khớp theo ${useCode ? 'Mã NV' : 'Họ tên'}`;
+  dlog('photo.pack', photoInfo);
+}
 /* Lấy link ảnh: trường Tệp đính kèm (qua SDK) hoặc cột chứa link ảnh */
 async function loadPhotos(cfg, rows) {
   const seq = ++photoSeq;
   const next = new Map();
   const meta = cfg.photo && fieldMetas.find(f => f.id === cfg.photo);
+  const packAtt = packMode && packSaved && meta && (packSaved.packExtra || []).some(e => e.id === cfg.photo && e.att);
+  if (packAtt) {
+    try { await loadPackPhotos(cfg, rows, seq, next); }
+    catch (e) { photoInfo = 'Không đọc được ảnh: ' + String(e && e.message || e); dlog('photo.pack.error', photoInfo); }
+    if (seq === photoSeq && (next.size || !photoUrls.size)) photoUrls = next;   // lỗi tạm thời thì giữ ảnh cũ
+    return;
+  }
   if (meta) {
     const has = (v) => v && !(Array.isArray(v) && !v.length);
     const withVal = rows.filter(r => has(r.fields[cfg.photo]));
@@ -2086,7 +2152,9 @@ function resolveDetailFields(cfg) {
 const isDateMeta = (m) => T_DATE.includes(m.type);
 function packExtras(cfg) {
   const base = new Set(PACK_KEYS.map(k => cfg[k]).filter(Boolean));
-  return (cfg.detailFields || []).filter(id => !base.has(id)).map(id => fieldMetas.find(f => f.id === id)).filter(Boolean);
+  const ids = [...(cfg.detailFields || [])];
+  if (cfg.photo && !ids.includes(cfg.photo)) ids.push(cfg.photo);   // ảnh: tên tệp hoặc link ảnh
+  return ids.filter(id => !base.has(id)).map(id => fieldMetas.find(f => f.id === id)).filter(Boolean);
 }
 const loose = (s) => fold(s).replace(/[^a-z0-9]/g, '');
 function extraExpected(r, m) { if (isDateMeta(m)) { const d = cellDate(r, m); return d ? dd(d) : ''; } return norm(toText(r.fields[m.id])); }
@@ -2854,6 +2922,8 @@ function renderPackInfo() {
   sec.classList.toggle('need-update', stale);
   $('packBadge').classList.toggle('hide', !stale);
   $('btnMakePack').textContent = cfg.packField ? 'Cập nhật cột' : 'Tạo cột tự động';
+  const pm = cfg.photo && fieldMetas.find(f => f.id === cfg.photo);
+  if (pm && pm.type === FT('Attachment', 17)) status += `<div style="margin-top:6px">📷 Ảnh: cột gói chỉ chứa <b>tên tệp ảnh</b> để khối biết khi ảnh thay đổi. Ảnh được đọc trực tiếp từ cột <b>${esc(pm.name)}</b> nên người xem cần có quyền xem bảng nhân sự.</div>`;
   el.innerHTML = `${status}<div style="margin-top:6px">Công thức của cột (theo các cột đang chọn ở trên):</div><code>${esc(fx)}</code>
     <button class="btn" id="btnCopyPack" type="button">Sao chép công thức</button>`;
   $('btnCopyPack').onclick = async () => {
@@ -2929,6 +2999,7 @@ async function loadPacked(saved) {
   snapMode = true; packMode = true; packSaved = saved; currentTable = null;
   fieldMetas = [...order.map(k => ({ id: 'p_' + k, name: names[k] || k, type: 1 })), ...extra.map(e => ({ id: e.id, name: e.name, type: 1 }))];
   detailSel = Array.isArray(saved.detailFields) ? saved.detailFields : extra.map(e => e.id);
+  if (saved.photo && extra.some(e => e.id === saved.photo)) { fillSelect($('selPhoto'), fieldMetas, true); $('selPhoto').value = saved.photo; }
   for (const id of ['selName', 'selParent']) fillSelect($(id), fieldMetas, false);
   for (const id of ['selCode', 'selAlias', 'selTitle', 'selDept', 'selTeam', 'selLevel', 'selStatus', 'selFilterField', 'selPhoto', 'selDeptMgr', 'selEmp']) fillSelect($(id), fieldMetas, true);
   const map = { name: 'selName', parent: 'selParent', code: 'selCode', alias: 'selAlias', title: 'selTitle', dept: 'selDept', team: 'selTeam',
@@ -2954,7 +3025,7 @@ async function saveDashboardConfig() {
       groups: [{ fieldId: cfg.packField }], series: 'COUNTA' };
     if (srcToken) cond.baseToken = srcToken;
     const packNames = Object.fromEntries(PACK_KEYS.map(k => [k, cfg[k] ? fieldNameOf(cfg[k]) : '']));
-    const packExtra = packExtras(cfg).map(m => ({ id: m.id, name: m.name }));
+    const packExtra = packExtras(cfg).map(m => ({ id: m.id, name: m.name, att: m.type === FT('Attachment', 17) || undefined }));
     const payload = { customConfig: { ...cfg, packOrder: PACK_KEYS, packNames, packExtra, saveMode: 'pack' }, dataConditions: [cond] };
     const stale = packMissing(cfg);
     try {
@@ -3029,6 +3100,7 @@ async function collectDiagnostics() {
   out.config = readConfig();
   out.snapMode = snapMode;
   out.packMode = packMode;
+  out.photo = photoInfo || null;
   if (packMode) out.packRows = records.length;
   if (out['dashboard.getConfig'] && out['dashboard.getConfig'].customConfig && out['dashboard.getConfig'].customConfig.snapshot) {
     const sn = out['dashboard.getConfig'].customConfig.snapshot;
@@ -3131,6 +3203,11 @@ async function init() {
       await loadPacked(saved);
       packed = true; tableId = saved.tableId;
       try { packDash.onDataChange(() => setTimeout(() => refresh(true).catch(() => {}), 1500)); } catch (e) {}
+      setInterval(() => {
+        if (!packMode || document.hidden) return;
+        const c = readConfig();
+        loadPhotos(c, filteredRows(c)).then(() => { if (tree) render(); }).catch(() => {});
+      }, 40 * 60 * 1000);
       // Thử đọc trực tiếp ở nền (để có ảnh nhân viên); không được thì giữ dữ liệu tự cập nhật
       connectLive().then(async (tid) => {
         if (tid === saved.tableId && records.length) { packMode = false; dlog('live.ok', { rows: records.length }); await draw(); }
