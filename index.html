@@ -487,6 +487,8 @@
   /* ---------- Chạy trong khối dashboard (Base / Base App) ---------- */
   .m-dash, .m-base { }
   #btnSave { display:none; }
+  #btnDiagView { display:none; color:var(--faint); }
+  body.dash:not(.dash-config) #btnDiagView { display:inline-flex; }
   body.dash .top { display:none; }
   body.dash:not(.dash-config) #notice { display:none !important; }   /* người xem dashboard không cần thấy cảnh báo dữ liệu */
   body.dash-config #config { display:block; position:fixed; right:0; top:0; bottom:0; width:320px; max-height:none;
@@ -612,6 +614,7 @@
       <button class="btn pct" id="zPct" title="Vừa màn hình">100%</button>
       <button class="btn icon" id="zIn" title="Phóng to">+</button>
     </div>
+    <button class="btn icon" id="btnDiagView" title="Chẩn đoán (gửi cho người hỗ trợ)" aria-label="Chẩn đoán"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></button>
   </div>
 
   <div id="config">
@@ -814,7 +817,7 @@ const SourceType = SDK.SourceType || { ALL: 'ALL' };
 
 const $ = (id) => document.getElementById(id);
 const CONFIG_KEY = 'orgchart-config-v4';
-const APP_VERSION = '2026-11-09.3';
+const APP_VERSION = '2026-11-09.4';
 const diagLog = [];   // nhật ký các bước làm việc với dashboard
 const dlog = (step, info) => { diagLog.push({ t: new Date().toISOString().slice(11, 19), step, info }); if (diagLog.length > 60) diagLog.shift(); };
 
@@ -1647,11 +1650,54 @@ function urlFromCell(v) {
    Cột gói chỉ mang tên tệp ảnh (để Lark báo khi ảnh đổi); link ảnh được đọc lại từ bảng nguồn — chỉ 2 cột:
    cột khóa (Mã NV, không có thì Họ tên) và cột ảnh — rồi ghép với từng người theo khóa. */
 let photoInfo = '', photoRetry = 0;
+/* Người xem dashboard thường không được Lark cho đọc tệp đính kèm (cột gói chỉ mang tên tệp).
+   Vì vậy khi Lưu, khối thu nhỏ ảnh đang hiện (72×96, JPEG) và cất vào cấu hình khối.
+   Khi xem: hiện ảnh nhỏ ngay, nếu đọc được bảng nguồn thì thay bằng ảnh gốc mới nhất. */
+const THUMB_W = 72, THUMB_H = 96, THUMB_MAX = 420000;
+let thumbUrls = new Map(), thumbInfo = '';
+async function makeThumb(url) {
+  const res = await fetch(url, { mode: 'cors', credentials: 'omit' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const bmp = await createImageBitmap(await res.blob());
+  const c = document.createElement('canvas'); c.width = THUMB_W; c.height = THUMB_H;
+  const k = Math.max(THUMB_W / bmp.width, THUMB_H / bmp.height), w = bmp.width * k, h = bmp.height * k;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, THUMB_W, THUMB_H);
+  g.drawImage(bmp, (THUMB_W - w) / 2, 0, w, h);   // giữ phần trên (khuôn mặt) giống object-position:top
+  return c.toDataURL('image/jpeg', 0.72).split(',')[1];
+}
+async function buildPhotoThumbs(cfg, rows) {
+  if (!cfg.photo || !photoUrls.size) return null;
+  const useCode = !!cfg.code && rows.some(r => norm(toText(r.fields[cfg.code])));
+  const keyId = useCode ? cfg.code : cfg.name;
+  const jobs = [], seen = new Set();
+  for (const r of rows) {
+    const u = photoUrls.get(r.recordId), k = fold(toText(r.fields[keyId]));
+    if (u && k && !seen.has(k) && !u.startsWith('data:')) { seen.add(k); jobs.push([k, u]); }
+  }
+  const d = {}; let bytes = 0, fail = 0, firstErr = '';
+  for (let i = 0; i < jobs.length && bytes < THUMB_MAX; i += 6) {
+    const out = await Promise.all(jobs.slice(i, i + 6).map(([k, u]) => makeThumb(u).then(b => [k, b]).catch(e => { fail++; firstErr = firstErr || String(e && e.message || e); return null; })));
+    for (const x of out) if (x && bytes + x[1].length <= THUMB_MAX) { d[x[0]] = x[1]; bytes += x[1].length; }
+  }
+  thumbInfo = `Ảnh nhỏ lưu kèm: ${Object.keys(d).length}/${jobs.length} (${Math.round(bytes / 1024)} KB)${fail ? ` · lỗi ${fail}: ${firstErr}` : ''}${bytes >= THUMB_MAX ? ' · đã đạt giới hạn dung lượng' : ''}`;
+  dlog('photo.thumbs', thumbInfo);
+  return Object.keys(d).length ? { k: useCode ? 'code' : 'name', at: Date.now(), d } : null;
+}
+function seedThumbs(saved) {
+  thumbUrls = new Map();
+  const t = saved && saved.photoThumbs;
+  if (!t || !t.d) return;
+  const keyP = t.k === 'code' ? 'p_code' : 'p_name';
+  for (const r of records) { const b = t.d[fold(r.fields[keyP] || '')]; if (b) thumbUrls.set(r.recordId, 'data:image/jpeg;base64,' + b); }
+  if (thumbUrls.size && !photoUrls.size) photoUrls = new Map(thumbUrls);
+  thumbInfo = `Ảnh nhỏ lưu kèm: ${thumbUrls.size} người (lưu lúc ${new Date(t.at).toLocaleString('vi-VN')})`;
+}
 /* Người xem dashboard không mở được Chẩn đoán → hiện một nút nhỏ khi ảnh không tải được */
 function updatePhotoChip() {
   let el = $('photoChip');
   const cfg = readConfig();
-  const show = cfg.photo && !photoUrls.size && photoInfo && records.length;
+  const show = cfg.photo && !photoUrls.size && records.length;
+  if (show && !photoInfo) photoInfo = 'Chưa có ảnh nào';
   if (!show) { if (el) el.remove(); return; }
   if (!el) {
     el = document.createElement('button'); el.id = 'photoChip'; el.type = 'button'; el.className = 'btn';
@@ -1742,7 +1788,9 @@ async function loadPhotos(cfg, rows) {
       if (seq === photoSeq && photoRetry < 3) { const t = [4000, 15000, 45000][photoRetry++]; setTimeout(() => { const c = readConfig(); loadPhotos(c, filteredRows(c)).then(() => { if (tree) render(); updatePhotoChip(); }).catch(() => {}); }, t); }
     }
     if (next.size) photoRetry = 0;
-    if (seq === photoSeq && (next.size || !photoUrls.size)) photoUrls = next;   // lỗi tạm thời thì giữ ảnh cũ
+    if (seq !== photoSeq) return;
+    for (const r of rows) if (!next.has(r.recordId) && thumbUrls.has(r.recordId)) next.set(r.recordId, thumbUrls.get(r.recordId));
+    if (next.size || !photoUrls.size) photoUrls = next;   // lỗi tạm thời thì giữ ảnh cũ
     return;
   }
   if (meta) {
@@ -2390,6 +2438,7 @@ document.addEventListener('toggle', (e) => {
   d.classList.remove('opening'); void d.offsetWidth; d.classList.add('opening');
   setTimeout(() => d.classList.remove('opening'), 400);
 }, true);
+document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'D' || e.key === 'd')) { e.preventDefault(); showDiagnostics2().catch(() => {}); } });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('detail').classList.contains('show') && !$('modal').classList.contains('show')) closeDetail(); });
 
 let shownKey = null, shownTab = null;
@@ -3178,6 +3227,7 @@ async function loadPacked(saved) {
   showModeFields();
   records = recs;
   recordsById = new Map(records.map(r => [r.recordId, r]));
+  seedThumbs(saved);
   refreshFilterValues(saved.filterValue || '');
   setSnapNote(null);
 }
@@ -3193,9 +3243,22 @@ async function saveDashboardConfig() {
     const packExtra = packExtras(cfg).map(m => ({ id: m.id, name: m.name, att: m.type === FT('Attachment', 17) || undefined }));
     const payload = { customConfig: { ...cfg, packOrder: PACK_KEYS, packNames, packExtra, saveMode: 'pack' }, dataConditions: [cond] };
     const stale = packMissing(cfg);
+    if (cfg.photo && photoUrls.size) {
+      toast('Đang thu nhỏ ảnh nhân sự để lưu kèm khối…', 8000);
+      try { const th = await buildPhotoThumbs(cfg, filteredRows(cfg)); if (th) payload.customConfig.photoThumbs = th; }
+      catch (e) { dlog('photo.thumbs.error', String(e && e.message || e)); }
+    }
     try {
       const d = await dashFor(srcToken);
-      const r = await d.saveConfig(payload);
+      let r;
+      try { r = await d.saveConfig(payload); if (r === false) throw new Error('saveConfig trả về false'); }
+      catch (e) {
+        if (!payload.customConfig.photoThumbs) throw e;
+        dlog('save.pack.thumbs.error', String(e && e.message || e));
+        delete payload.customConfig.photoThumbs; thumbInfo += ' · Lark không nhận (có thể quá lớn), đã lưu không kèm ảnh';
+        r = await d.saveConfig(payload);
+      }
+      dlog('save.pack.size', JSON.stringify(payload).length);
       dlog('save.pack.ok', { result: r, cond });
       if (r !== false) {
         try { const pv = await withTimeout(d.getPreviewData(cond), 8000); dlog('save.pack.preview', { rows: Array.isArray(pv) ? parsePacked(pv, PACK_KEYS).length : null }); }
@@ -3266,9 +3329,13 @@ async function collectDiagnostics() {
   out.snapMode = snapMode;
   out.packMode = packMode;
   out.photo = photoInfo || null;
+  out.photoThumbs = thumbInfo || null;
+  out.photoShown = photoUrls.size;
   try { const c = readConfig(); if (c.packField && !snapMode) packMissing(c); } catch (e) {}
   out.packCheck = packCheck;
   if (packMode) out.packRows = records.length;
+  { const cc = out['dashboard.getConfig'] && out['dashboard.getConfig'].customConfig;
+    if (cc && cc.photoThumbs) { out['dashboard.getConfig'] = JSON.parse(JSON.stringify(out['dashboard.getConfig'])); const t = out['dashboard.getConfig'].customConfig.photoThumbs; out['dashboard.getConfig'].customConfig.photoThumbs = { k: t.k, at: new Date(t.at).toISOString(), n: Object.keys(t.d || {}).length, kb: Math.round(JSON.stringify(t.d || {}).length / 1024) }; } }
   if (out['dashboard.getConfig'] && out['dashboard.getConfig'].customConfig && out['dashboard.getConfig'].customConfig.snapshot) {
     const sn = out['dashboard.getConfig'].customConfig.snapshot;
     out['dashboard.getConfig'] = JSON.parse(JSON.stringify(out['dashboard.getConfig']));
@@ -3442,6 +3509,7 @@ async function init() {
   $('inpBgColor').oninput = applyBg;
   $('rngBgAlpha').oninput = applyBg;
   $('chkGrid').onchange = applyBg;
+  $('btnDiagView').onclick = () => showDiagnostics2().catch(e => toast('Lỗi chẩn đoán: ' + e.message, 6000));
   $('btnDiag').onclick = () => showDiagnostics2().catch(e => toast('Lỗi chẩn đoán: ' + e.message, 6000));
 
   if (dashMode) {
