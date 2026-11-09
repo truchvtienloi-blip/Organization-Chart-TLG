@@ -814,7 +814,7 @@ const SourceType = SDK.SourceType || { ALL: 'ALL' };
 
 const $ = (id) => document.getElementById(id);
 const CONFIG_KEY = 'orgchart-config-v4';
-const APP_VERSION = '2026-11-09.2';
+const APP_VERSION = '2026-11-09.3';
 const diagLog = [];   // nhật ký các bước làm việc với dashboard
 const dlog = (step, info) => { diagLog.push({ t: new Date().toISOString().slice(11, 19), step, info }); if (diagLog.length > 60) diagLog.shift(); };
 
@@ -2165,7 +2165,14 @@ function fieldBy(...res) {
   for (const re of res) { const f = fieldMetas.find(m => { const s = fold(m.name); return re.test(s) && !PERSONAL_RE.test(s); }); if (f) return f; }
   return null;
 }
-function cellText(r, m) { return m && r ? fmtCell(m, r.fields[m.id]) : ''; }
+/* Khi bảng trả về trống (cột công thức Lark không trả qua SDK) thì lấy giá trị đó trong cột gói */
+let packCtx = null;   // { pf, idx: Map(fieldId -> vị trí trong cột gói) } — đặt khi mở ngăn chi tiết
+function cellText(r, m) {
+  if (!m || !r) return '';
+  const v = fmtCell(m, r.fields[m.id]);
+  if (v || !packCtx || !packCtx.idx.has(m.id)) return v;
+  return norm(toText(r.fields[packCtx.pf]).split('|')[packCtx.idx.get(m.id)] || '');
+}
 function cellDate(r, m) {
   if (!m || !r) return null;
   let v = r.fields[m.id];
@@ -2253,6 +2260,8 @@ const T_TEXT = () => FT('Text', 1);
 function packCellOk(got, want, m) {
   if (got === undefined) return false;
   if (extraMatches(got, want, m)) return true;
+  // SDK không trả giá trị của một số cột công thức (vd dùng TODAY()) dù trong bảng có → tin cột gói
+  if (!norm(want) && norm(got)) return true;
   if (m && m.type === T_TEXT()) return false;
   return !!norm(got) === !!norm(want);
 }
@@ -2408,6 +2417,7 @@ function showDetail(n) {
 
   /* --- chỉ các cột quản trị đã chọn --- */
   const chosen = new Set(cfg.detailFields);
+  packCtx = !packMode && cfg.packField ? { pf: cfg.packField, idx: new Map(packExtras(cfg).map((m, i) => [m.id, PACK_KEYS.length + i])) } : null;
   const metas = fieldMetas.filter(m => chosen.has(m.id) && !isPersonal(m));
   const pick = (m) => (m && chosen.has(m.id) ? m : null);
   const F = r ? {
