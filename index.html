@@ -764,7 +764,7 @@ const SourceType = SDK.SourceType || { ALL: 'ALL' };
 
 const $ = (id) => document.getElementById(id);
 const CONFIG_KEY = 'orgchart-config-v4';
-const APP_VERSION = '2026-10-28.1';
+const APP_VERSION = '2026-11-09.1';
 const diagLog = [];   // nhật ký các bước làm việc với dashboard
 const dlog = (step, info) => { diagLog.push({ t: new Date().toISOString().slice(11, 19), step, info }); if (diagLog.length > 60) diagLog.shift(); };
 
@@ -1597,6 +1597,16 @@ function urlFromCell(v) {
    Cột gói chỉ mang tên tệp ảnh (để Lark báo khi ảnh đổi); link ảnh được đọc lại từ bảng nguồn — chỉ 2 cột:
    cột khóa (Mã NV, không có thì Họ tên) và cột ảnh — rồi ghép với từng người theo khóa. */
 let photoInfo = '';
+async function attachmentUrls(table, field, recordId, vals) {
+  let urls = [], err = '';
+  try { urls = (await withTimeout(field.getAttachmentUrls(recordId), 10000)) || []; } catch (e) { err = String(e && e.message || e); }
+  if (!urls.length && table && table.getCellAttachmentUrls && vals.length) {
+    try { urls = (await withTimeout(table.getCellAttachmentUrls(vals.map(a => a.token).filter(Boolean), field.id, recordId), 10000)) || []; }
+    catch (e) { err = err || String(e && e.message || e); }
+  }
+  const idx = Math.max(0, vals.findIndex(a => /^image\//.test((a && a.type) || '')));
+  return { url: urls[idx] || urls[0] || '', err };
+}
 async function packPhotoTable() {
   const s = packSaved;
   let base = bitable.base;
@@ -1637,19 +1647,15 @@ async function loadPackPhotos(cfg, rows, seq, next) {
   }
   const want = [...new Set(rows.map(r => fold(r.fields[keyP] || '')).filter(k => recByKey.has(k)))];
   const urlByKey = new Map();
+  let firstErr = '';
   for (let i = 0; i < want.length; i += 10) {
     const chunk = want.slice(i, i + 10);
-    const res = await Promise.all(chunk.map(k => picF.getAttachmentUrls(recByKey.get(k)[0]).catch(() => [])));
+    const res = await Promise.all(chunk.map(k => attachmentUrls(table, picF, recByKey.get(k)[0], recByKey.get(k)[1])));
     if (seq !== photoSeq) return;
-    chunk.forEach((k, j) => {
-      const vals = recByKey.get(k)[1];
-      const idx = Math.max(0, vals.findIndex(a => /^image\//.test((a && a.type) || '')));
-      const u = (res[j] || [])[idx] || (res[j] || [])[0];
-      if (u) urlByKey.set(k, u);
-    });
+    chunk.forEach((k, j) => { if (res[j].url) urlByKey.set(k, res[j].url); else if (!firstErr) firstErr = res[j].err || 'Lark trả về danh sách link rỗng'; });
   }
   for (const r of rows) { const u = urlByKey.get(fold(r.fields[keyP] || '')); if (u) next.set(r.recordId, u); }
-  photoInfo = `${next.size}/${rows.length} ảnh · khớp theo ${useCode ? 'Mã NV' : 'Họ tên'}`;
+  photoInfo = `Cột gói: ${next.size}/${rows.length} ảnh · khớp theo ${useCode ? 'Mã NV' : 'Họ tên'} (${recByKey.size} người có ảnh trong bảng, ${want.length} khớp)${firstErr ? ' · lỗi đầu tiên: ' + firstErr : ''}`;
   dlog('photo.pack', photoInfo);
 }
 /* Lấy link ảnh: trường Tệp đính kèm (qua SDK) hoặc cột chứa link ảnh */
@@ -1668,19 +1674,17 @@ async function loadPhotos(cfg, rows) {
     const has = (v) => v && !(Array.isArray(v) && !v.length);
     const withVal = rows.filter(r => has(r.fields[cfg.photo]));
     if (meta.type === FieldType.Attachment) {
-      if (!currentTable || snapMode) return;
+      if (!currentTable || snapMode) { photoInfo = 'Không đọc trực tiếp được bảng nên chưa lấy được ảnh'; return; }
       const field = await currentTable.getFieldById(cfg.photo);
+      let firstErr = '';
       for (let i = 0; i < withVal.length; i += 10) {
         const chunk = withVal.slice(i, i + 10);
-        const res = await Promise.all(chunk.map(r => field.getAttachmentUrls(r.recordId).catch(() => [])));
+        const res = await Promise.all(chunk.map(r => attachmentUrls(currentTable, field, r.recordId, Array.isArray(r.fields[cfg.photo]) ? r.fields[cfg.photo] : [])));
         if (seq !== photoSeq) return;
-        chunk.forEach((r, j) => {
-          const vals = Array.isArray(r.fields[cfg.photo]) ? r.fields[cfg.photo] : [];
-          const idx = Math.max(0, vals.findIndex(a => /^image\//.test((a && a.type) || '')));
-          const u = (res[j] || [])[idx] || (res[j] || [])[0];
-          if (u) next.set(r.recordId, u);
-        });
+        chunk.forEach((r, j) => { if (res[j].url) next.set(r.recordId, res[j].url); else if (!firstErr) firstErr = res[j].err || 'Lark trả về danh sách link rỗng'; });
       }
+      photoInfo = `Đọc trực tiếp: ${next.size}/${withVal.length} người có ảnh${firstErr ? ' · lỗi đầu tiên: ' + firstErr : ''}`;
+      dlog('photo.live', photoInfo);
     } else {
       for (const r of withVal) { const u = urlFromCell(r.fields[cfg.photo]); if (u) next.set(r.recordId, u); }
     }
@@ -2080,7 +2084,7 @@ let detailTab = 'overview';
 const closedGroups = new Set();
 
 /* Cột mang tính cá nhân — không cho chọn, không bao giờ hiển thị */
-const PERSONAL_RE = /ca nhan|rieng|personal|gmail|sinh|gioi tinh|dia chi|thuong tru|cho o|que quan|cccd|cmnd|can cuoc|ho chieu|luong|ngan hang|so tk|tai khoan ngan|bhxh|bhyt|kcb|ma so thue|^mst|vo\/chong|vo chong|nguoi than|khan cap|gia dinh|\(\d+\)|con thu|hon nhan|dan toc|ton giao|quoc tich|suc khoe|chieu cao|can nang|nhom mau/;
+const PERSONAL_RE = /ca nhan|rieng|personal|gmail|sinh|gioi tinh|dia chi|thuong tru|cho o|que quan|cccd|cmnd|can cuoc|ho chieu|luong|ngan hang|so tk|tai khoan ngan|bhxh|bhyt|kcb|ma so thue|^mst|vo\/chong|vo chong|nguoi than|khan cap|gia dinh|\(\d+\)|con thu|hon nhan|dan toc|ton giao|quoc tich|suc khoe|chieu cao|can nang|nhom mau|tuoi/;
 const isPersonal = (m) => PERSONAL_RE.test(fold(m.name));
 function fieldBy(...res) {
   for (const re of res) { const f = fieldMetas.find(m => { const s = fold(m.name); return re.test(s) && !PERSONAL_RE.test(s); }); if (f) return f; }
@@ -2158,10 +2162,16 @@ function packExtras(cfg) {
 }
 const loose = (s) => fold(s).replace(/[^a-z0-9]/g, '');
 function extraExpected(r, m) { if (isDateMeta(m)) { const d = cellDate(r, m); return d ? dd(d) : ''; } return norm(toText(r.fields[m.id])); }
+const asNum = (x) => { const t = String(x == null ? '' : x).trim().replace(/[\s%]/g, '').replace(/,(?=\d{3}(\D|$))/g, ''); return /^-?\d+(\.\d+)?$/.test(t) ? parseFloat(t) : NaN; };
 function extraMatches(got, want, m) {
   if (isDateMeta(m)) { const a = cellDate({ fields: { x: got } }, { id: 'x' }), b = cellDate({ fields: { x: want } }, { id: 'x' }); return (!a && !b) || (a && b && +a === +b); }
-  return loose(got) === loose(want);
+  if (loose(got) === loose(want)) return true;
+  // Lark ghép số vào công thức theo định dạng hiển thị của cột (vd 2,5342 → "2.5")
+  const a = asNum(got), b = asNum(want);
+  if (!isNaN(a) && !isNaN(b)) { const d = (String(got).split('.')[1] || '').replace(/\D/g, '').length; return Math.abs(a - b) <= 0.5 * Math.pow(10, -d) + 1e-9; }
+  return false;
 }
+let packCheck = null;   // mẫu các ô lệch, hiện trong Chẩn đoán
 /* Trả về các cột chi tiết đã chọn nhưng cột gói chưa chứa (công thức cũ) */
 function packMissing(cfg) {
   if (!dashMode || snapMode || !cfg.packField) return [];
@@ -2169,15 +2179,21 @@ function packMissing(cfg) {
   if (!ex.length) return [];
   const rows = records.filter(r => norm(toText(r.fields[cfg.name])) && toText(r.fields[cfg.packField]));
   if (!rows.length) return ex;
-  const bad = new Map(ex.map(m => [m.id, 0]));
+  const bad = new Map(ex.map(m => [m.id, 0])), samples = {};
   for (const r of rows) {
     const parts = toText(r.fields[cfg.packField]).split('|');
     ex.forEach((m, i) => {
-      const got = parts[PACK_KEYS.length + i];
-      if (got === undefined || !extraMatches(got, extraExpected(r, m), m)) bad.set(m.id, bad.get(m.id) + 1);
+      const got = parts[PACK_KEYS.length + i], want = extraExpected(r, m);
+      if (got === undefined || !extraMatches(got, want, m)) {
+        bad.set(m.id, bad.get(m.id) + 1);
+        const list = samples[m.name] || (samples[m.name] = []);
+        if (list.length < 3) list.push({ trongCotGoi: got === undefined ? '(không có)' : got, giaTriBang: want, kieuCot: m.type });
+      }
     });
   }
-  return ex.filter(m => bad.get(m.id) > rows.length * 0.2);
+  const miss = ex.filter(m => bad.get(m.id) > rows.length * 0.2);
+  packCheck = { rows: rows.length, parts: PACK_KEYS.length + ex.length, lech: Object.fromEntries(ex.filter(m => bad.get(m.id)).map(m => [m.name, { dong: bad.get(m.id), mau: samples[m.name] }])) };
+  return miss;
 }
 
 /* ---------- Mục cấu hình "Thông tin khi xem chi tiết" ---------- */
@@ -3101,6 +3117,8 @@ async function collectDiagnostics() {
   out.snapMode = snapMode;
   out.packMode = packMode;
   out.photo = photoInfo || null;
+  try { const c = readConfig(); if (c.packField && !snapMode) packMissing(c); } catch (e) {}
+  out.packCheck = packCheck;
   if (packMode) out.packRows = records.length;
   if (out['dashboard.getConfig'] && out['dashboard.getConfig'].customConfig && out['dashboard.getConfig'].customConfig.snapshot) {
     const sn = out['dashboard.getConfig'].customConfig.snapshot;
