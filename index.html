@@ -481,6 +481,74 @@
   body.dash-config .grid { grid-template-columns:1fr; }
   .dash-hint { display:none; font-size:11.5px; color:var(--muted); line-height:1.5; margin:10px 0 0; }
   body.dash-config .dash-hint { display:block; }
+
+  /* ============ Chuyển động (motion) ============
+     Chỉ dùng transform / opacity. Tắt hết khi hệ điều hành bật "Giảm chuyển động". */
+  :root { --ease-out:cubic-bezier(.2,.8,.2,1); --ease-spring:cubic-bezier(.3,1.35,.5,1); --dur-1:.14s; --dur-2:.22s; --dur-3:.32s; }
+  @keyframes mFadeIn { from { opacity:0; } }
+  @keyframes mFadeUp { from { opacity:0; transform:translateY(6px); } }
+  @keyframes mDrop { from { opacity:0; transform:translateY(-8px); } }
+  @keyframes mPop { from { opacity:0; transform:scale(.96); } }
+  @keyframes mAvaPop { from { opacity:0; transform:scale(.82); } }
+  @keyframes mPanelIn { from { opacity:0; transform:translateX(18px); } }
+  @keyframes mPanelOut { to { opacity:0; transform:translateX(18px); } }
+
+  /* Sơ đồ: hiện dần lần vẽ đầu, trượt mượt khi Định vị / phóng to / vừa màn hình */
+  #tree.tree-in { animation:mFadeIn var(--dur-3) ease-out; }
+  #stage.glide { transition:transform .42s var(--ease-out); }
+  /* Mở nhánh: các ô con rơi xuống lần lượt */
+  .tree ul.branch-in > li { animation:mDrop var(--dur-3) var(--ease-out) both; animation-delay:calc(var(--i, 0) * 28ms); }
+  /* Thẻ nhân sự */
+  .card { transition:box-shadow var(--dur-1), border-color var(--dur-1), transform var(--dur-2) var(--ease-out); }
+  .card:hover { transform:translateY(-2px); }
+  .card:active { transform:translateY(0) scale(.985); transition-duration:.08s; }
+  #exportArea.exporting .card { transition:none; transform:none; }
+  .tg { transition:background-color var(--dur-1), border-color var(--dur-1), color var(--dur-1), transform var(--dur-1); }
+  .tg:hover { transform:translateX(-50%) scale(1.08); }
+
+  /* Ngăn chi tiết: trượt vào / ra */
+  #detail.show { animation:mPanelIn var(--dur-3) var(--ease-out); }
+  #detail.closing { animation:mPanelOut .18s ease-in forwards; pointer-events:none; }
+  .hrd.swap .ava { animation:mAvaPop var(--dur-3) var(--ease-spring) both; }
+  .hrd.swap .hero h2, .hrd.swap .hero-sub, .hrd.swap .hero-dep, .hrd.swap .badges, .hrd.swap .hero-stats, .hrd.swap .hero-acts { animation:mFadeUp var(--dur-2) var(--ease-out) both; }
+  .hrd.swap .hero h2 { animation-delay:30ms; } .hrd.swap .hero-sub, .hrd.swap .hero-dep { animation-delay:60ms; }
+  .hrd.swap .badges { animation-delay:90ms; } .hrd.swap .hero-stats { animation-delay:110ms; } .hrd.swap .hero-acts { animation-delay:130ms; }
+  .hrd.swap .dpane > *, .hrd.tabswap .dpane > * { animation:mFadeUp var(--dur-2) var(--ease-out) both; }
+  .hrd .dpane > :nth-child(2) { animation-delay:40ms; } .hrd .dpane > :nth-child(3) { animation-delay:80ms; }
+  .hrd .dpane > :nth-child(4) { animation-delay:120ms; } .hrd .dpane > :nth-child(n+5) { animation-delay:150ms; }
+  /* Thanh gạch chân tab trượt sang tab mới */
+  .hrd .dtabs { position:sticky; }
+  .hrd .dtabs button.on { border-bottom-color:transparent; }
+  .hrd .dtabs .ink { position:absolute; bottom:-1px; left:0; height:2px; width:0; border-radius:2px; background:var(--brand); transition:transform var(--dur-3) var(--ease-out), width var(--dur-3) var(--ease-out); }
+  .hrd .hbtn, .hrd .person, .hrd .d-close { transition:background-color var(--dur-1), border-color var(--dur-1), color var(--dur-1), box-shadow var(--dur-1), transform var(--dur-1); }
+  .hrd .hbtn:active, .hrd .person:active, .hrd .d-close:active { transform:scale(.96); }
+  .hrd .d-close:hover { transform:rotate(90deg); }
+  .hrd .info li .tile { transition:transform var(--dur-2) var(--ease-spring); }
+  .hrd .info li:hover .tile { transform:scale(1.08) rotate(-4deg); }
+
+  /* Mở khối nhóm (ngăn chi tiết và các mục cấu hình) */
+  details.opening > :not(summary) { animation:mFadeUp var(--dur-2) var(--ease-out) both; }
+  .hrd details.dgroup > summary::after, .cfg-sec > summary::after { transition:transform var(--dur-2) var(--ease-out); }
+
+  /* Ô gợi ý tìm kiếm, thông báo, hộp thoại, bảng cấu hình */
+  .sugg.show { animation:mPop var(--dur-1) var(--ease-out); transform-origin:top center; }
+  #toast { transform:translateY(8px); transition:opacity var(--dur-2), transform var(--dur-2) var(--ease-out); }
+  #toast.show { transform:none; }
+  .modal.show { animation:mFadeIn var(--dur-2) ease-out; }
+  .modal.show .box { animation:mPop var(--dur-3) var(--ease-out); }
+  #config.open { animation:mDrop var(--dur-2) var(--ease-out); }
+  body.dash-config #config { animation:mPanelIn var(--dur-3) var(--ease-out); }
+  .btn { transition:background-color var(--dur-1), border-color var(--dur-1), color var(--dur-1), box-shadow var(--dur-1), transform .08s; }
+  .btn:active:not(:disabled) { transform:scale(.97); }
+  .db-list label, .inactive-box label { transition:background-color var(--dur-1), border-color var(--dur-1), color var(--dur-1), transform var(--dur-1); }
+  .db-list label:active, .inactive-box label:active { transform:scale(.96); }
+  .db-warn { animation:mFadeUp var(--dur-2) var(--ease-out); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:.01ms !important; animation-delay:0s !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    .card:hover, .tg:hover, .hrd .d-close:hover, .hrd .info li:hover .tile { transform:none; }
+    .tg:hover { transform:translateX(-50%); }
+  }
 </style>
 </head>
 <body>
@@ -1748,8 +1816,20 @@ function cardScreenPos(key) {
   const r = el.getBoundingClientRect();
   return { x: r.left, y: r.top };
 }
+let enterKey = null;   // nhánh vừa được mở → chạy hiệu ứng cho các ô con
+function animateBranch(key) {
+  if (!key || reduceMotion()) return;
+  const card = $('tree').querySelector(`.card[data-key="${key}"]`);
+  const li = card && card.closest('li');
+  const ul = li && li.querySelector(':scope > ul');
+  if (!ul) return;
+  [...ul.children].forEach((x, i) => x.style.setProperty('--i', Math.min(i, 12)));
+  ul.classList.add('branch-in');
+  setTimeout(() => ul.classList.remove('branch-in'), 800);
+}
 function render(anchorKey) {
   if (!tree) return;
+  snapView();
   const before = anchorKey ? cardScreenPos(anchorKey) : null;
   const cfg = readConfig();
   const t = $('tree');
@@ -1771,7 +1851,11 @@ function render(anchorKey) {
   if (before) {
     const after = cardScreenPos(anchorKey);
     if (after) { view.x += before.x - after.x; view.y += before.y - after.y; applyView(); }
-  } else if (firstRender) { (dashMode === 'View' ? fit : fitReadable)(); firstRender = false; }
+  } else if (firstRender) {
+    (dashMode === 'View' ? fit : fitReadable)(); firstRender = false;
+    t.classList.remove('tree-in'); void t.offsetWidth; t.classList.add('tree-in');
+  }
+  if (enterKey) { animateBranch(enterKey); enterKey = null; }
 }
 /* Lần đầu: vừa màn hình nếu chữ vẫn đọc được, nếu không thì giữ cỡ 80% và căn giữa vào thẻ trên cùng */
 function fitReadable() {
@@ -1790,6 +1874,24 @@ function fitReadable() {
 
 /* ============ Phóng to / kéo ============ */
 const view = { x: 0, y: 0, s: 1 };
+/* Chuyển khung nhìn có hiệu ứng trượt: tính vị trí đích khi chưa có transition (để getBoundingClientRect đúng),
+   rồi quay về vị trí cũ và để CSS trượt tới đích. */
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+let glideDepth = 0, glideTimer = 0;
+function snapView() { $('stage').classList.remove('glide'); }
+function glideView(fn) {
+  if (glideDepth) return fn();
+  const st = $('stage');
+  snapView();
+  const prev = st.style.transform;
+  glideDepth++;
+  try { fn(); } finally { glideDepth--; }
+  const next = st.style.transform;
+  if (reduceMotion() || !prev || prev === next) return;
+  st.style.transform = prev; void st.offsetWidth;
+  st.classList.add('glide'); st.style.transform = next;
+  clearTimeout(glideTimer); glideTimer = setTimeout(snapView, 460);
+}
 function applyView() {
   $('stage').style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.s})`;
   $('zPct').textContent = Math.round(view.s * 100) + '%';
@@ -1813,7 +1915,8 @@ function fit() {
   view.y = h * s < vp.height ? Math.min(30, (vp.height - h * s) / 2) : 10;
   applyView();
 }
-function centerOn(key) {
+function centerOn(key) { glideView(() => centerOnNow(key)); }
+function centerOnNow(key) {
   const el = $('tree').querySelector(`.card[data-key="${key}"]`);
   if (!el) return;
   const vp = $('viewport').getBoundingClientRect();
@@ -1846,20 +1949,20 @@ function centerOn(key) {
     if (e.ctrlKey || e.metaKey) zoomAt(Math.exp(-e.deltaY * 0.0025), e.clientX - r.left, e.clientY - r.top);
     else { view.x -= e.deltaX; view.y -= e.deltaY; applyView(); }
   }, { passive: false });
-  $('zIn').onclick = () => zoomAt(1.2);
-  $('zOut').onclick = () => zoomAt(1 / 1.2);
-  $('zPct').onclick = fit;
+  $('zIn').onclick = () => glideView(() => zoomAt(1.2));
+  $('zOut').onclick = () => glideView(() => zoomAt(1 / 1.2));
+  $('zPct').onclick = () => glideView(fit);
 })();
 
 /* ============ Tương tác ============ */
 $('tree').addEventListener('click', (e) => {
   const tg = e.target.closest('[data-toggle]');
-  if (tg) { const n = nodeByKey.get(tg.dataset.toggle); if (n) { n.collapsed = !n.collapsed; render(n.key); } return; }
+  if (tg) { const n = nodeByKey.get(tg.dataset.toggle); if (n) { n.collapsed = !n.collapsed; if (!n.collapsed) enterKey = n.key; render(n.key); } return; }
   const card = e.target.closest('.card');
   if (card) {
     const n = nodeByKey.get(card.dataset.key);
     if (!n) return;
-    if (n.kind !== 'person' && n.children.length && n.collapsed) { n.collapsed = false; render(n.key); }
+    if (n.kind !== 'person' && n.children.length && n.collapsed) { n.collapsed = false; enterKey = n.key; render(n.key); }
     select(n);
   }
 });
@@ -2088,19 +2191,43 @@ function profileTab(r, metas) {
 
 let detailFilter = '';   // phòng ban đang lọc do bấm "Lọc phòng" trong ngăn chi tiết
 function closeDetail() {
-  const key = selectedKey;
-  $('detail').classList.remove('show'); selectedKey = null;
+  const key = selectedKey, D = $('detail');
+  if (D.classList.contains('show') && !reduceMotion()) {
+    D.classList.add('closing');
+    const done = () => { if (D.classList.contains('closing')) D.classList.remove('show', 'closing'); };
+    D.addEventListener('animationend', done, { once: true }); setTimeout(done, 260);
+  } else D.classList.remove('show');
+  selectedKey = null; shownKey = null;
   $('tree').querySelectorAll('.card.sel').forEach(el => el.classList.remove('sel'));
   if (detailFilter && deptFilter === detailFilter) {
     setDeptFilter('');
-    requestAnimationFrame(() => { fitReadable(); if (key && nodeByKey.has(key)) centerOn(key); });
+    requestAnimationFrame(() => glideView(() => { fitReadable(); if (key && nodeByKey.has(key)) centerOn(key); }));
   }
   detailFilter = '';
 }
+document.addEventListener('toggle', (e) => {
+  const d = e.target;
+  if (!d || !d.open || !d.matches || !d.matches('.cfg-sec, details.dgroup') || reduceMotion()) return;
+  if (d.closest('.hrd.swap, .hrd.tabswap')) return;   // đã có hiệu ứng của cả ngăn
+  d.classList.remove('opening'); void d.offsetWidth; d.classList.add('opening');
+  setTimeout(() => d.classList.remove('opening'), 400);
+}, true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('detail').classList.contains('show') && !$('modal').classList.contains('show')) closeDetail(); });
 
+let shownKey = null, shownTab = null;
+function countUp(el) {
+  const to = +el.textContent;
+  if (!Number.isInteger(to) || to < 2 || reduceMotion()) return;
+  const t0 = performance.now(), dur = 520;
+  const step = (t) => { const k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
+  el.textContent = '0'; requestAnimationFrame(step);
+}
 function showDetail(n) {
   const cfg = readConfig();
+  const D0 = $('detail');
+  const prevInk = D0.querySelector('.dtabs button.on');
+  const inkFrom = prevInk ? [prevInk.offsetLeft, prevInk.offsetWidth] : null;
+  const motion = shownKey !== n.key ? 'swap' : shownTab !== detailTab ? 'tabswap' : '';
   const isPerson = n.kind === 'person';
   const [c, cs] = n.kind === 'root' ? ['#3370ff', '#e8efff'] : n.kind === 'orphan' ? ['#a65400', '#ffe9cc'] : colorOf(n.dept);
   const r = isPerson && n.recordId ? recordsById.get(n.recordId) : null;
@@ -2201,7 +2328,20 @@ function showDetail(n) {
       <div class="dpane">${tabs.find(t => t[0] === detailTab)[2]}${note}</div>
     </div>`;
   const D = $('detail');
+  D.classList.remove('closing');
   D.classList.add('show');
+  /* hiệu ứng */
+  const hrd = D.querySelector('.hrd');
+  if (motion && !reduceMotion()) hrd.classList.add(motion);
+  if (motion === 'swap') D.querySelectorAll('.hero-stats b').forEach(countUp);
+  const nav = D.querySelector('.dtabs'), on = nav && nav.querySelector('button.on');
+  if (on) {
+    const ink = document.createElement('span'); ink.className = 'ink'; nav.appendChild(ink);
+    const put = (x, w) => { ink.style.transform = `translateX(${x}px)`; ink.style.width = w + 'px'; };
+    if (inkFrom && motion === 'tabswap' && !reduceMotion()) { ink.style.transition = 'none'; put(...inkFrom); void ink.offsetWidth; ink.style.transition = ''; }
+    put(on.offsetLeft, on.offsetWidth);
+  }
+  shownKey = n.key; shownTab = detailTab;
   $('dClose').onclick = closeDetail;
   $('dLocate').onclick = () => centerOn(n.key);
   if ($('dBranch')) $('dBranch').onclick = () => { setAll(n, false); render(n.key); showDetail(n); requestAnimationFrame(() => centerOn(n.key)); };
@@ -2210,7 +2350,7 @@ function showDetail(n) {
     setDeptFilter(off ? '' : n.dept);
     detailFilter = off ? '' : n.dept;
     showDetail(n);
-    requestAnimationFrame(() => { if (off) { fitReadable(); centerOn(n.key); } else fit(); });
+    requestAnimationFrame(() => glideView(() => { if (off) { fitReadable(); centerOn(n.key); } else fit(); }));
   };
   D.querySelectorAll('[data-dtab]').forEach(b => b.onclick = () => {
     detailTab = b.dataset.dtab; const st = D.querySelector('.hrd').scrollTop; showDetail(n);
@@ -2519,12 +2659,12 @@ $('mClose').onclick = () => $('modal').classList.remove('show');
 
 /* ============ Mở / thu gọn ============ */
 function setAll(n, c) { if (n.children.length) { n.collapsed = c; n.children.forEach(x => setAll(x, c)); } }
-$('btnExpand').onclick = () => { if (tree) { setAll(tree, false); render(); fit(); } };
+$('btnExpand').onclick = () => { if (tree) { setAll(tree, false); render(); glideView(fit); } };
 $('btnCollapse').onclick = () => {
   if (!tree) return;
   setAll(tree, true); tree.collapsed = false;
   for (const n of nodeByKey.values()) if (n.isLeader) n.collapsed = false;
-  render(); fit();
+  render(); glideView(fit);
 };
 
 /* ============ Khối dashboard & nhiều nguồn base ============ */
